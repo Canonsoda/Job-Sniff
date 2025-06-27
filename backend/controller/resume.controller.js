@@ -39,7 +39,8 @@ export const uploadResume = async (req, res) => {
         phone: extractedData.phone,
         cgpa: extractedData.cgpa,
         skills: extractedData.skills.join(', '),
-        // rawText: extractedData.rawText, ← only include if available
+        education: extractedData.education || [],
+        workExperience: extractedData.workExperience || []
       },
     });
 
