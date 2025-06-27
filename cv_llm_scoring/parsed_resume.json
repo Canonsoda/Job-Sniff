@@ -1,0 +1,74 @@
+{
+  "extractedData": {
+    "name": "AADITYA RAJ",
+    "email": "helloaadityahere@gmail.com",
+    "phone": "1234567890",
+    "skills": [
+      "Python",
+      "C/C++",
+      "SQL",
+      "Tensorflow",
+      "PyTorch",
+      "Keras",
+      "Huggingface",
+      "Langchain",
+      "Git",
+      "Docker",
+      "Jupyter-Notebook",
+      "VS Code",
+      "PyCharm",
+      "Pandas",
+      "NumPy",
+      "Matplotlib"
+    ],
+    "cgpa": "8.28",
+    "shortlisted": false,
+    "education": [
+      {
+        "level": "Bachelor of Technology",
+        "institution": "Birla Institute of Technology, Mesra",
+        "board": "Not Mentioned",
+        "year": "Present",
+        "percentage": "8.28"
+      },
+      {
+        "level": "12th",
+        "institution": "Delhi Public School, Ranchi",
+        "board": "Not Mentioned",
+        "year": "2023",
+        "percentage": "96.6"
+      }
+    ],
+    "workExperience": [
+      {
+        "position": "Research Assistant",
+        "company": "Birla Institute of Technology, Mesra",
+        "duration": "Present",
+        "description": "Working under a professor to replicate and enhance the findings of the paper Powe of Alignment: Exploring the effect of face alignment on ASD Diagnosis using facial images. Investigating the impact of facial alignment on the accuracy of ASD diagnosis using deep learning models trained on facial image datasets. Fine-tuning state-of-the-art CNN architectures such as ResNet50, MobileNet, and Xception to evaluate performance changes due to alignment techniques. Experimenting with various face detection and preprocessing pipelines to optimize diagnostic accuracy and model generalization."
+      }
+    ],
+    "suggestions": {
+      "commonSkills": [
+        "Python",
+        "SQL",
+        "Tensorflow",
+        "Pandas",
+        "NumPy"
+      ],
+      "uniqueSkills": [
+        "C/C++",
+        "Keras",
+        "Huggingface",
+        "Langchain",
+        "Git",
+        "Docker",
+        "Jupyter-Notebook",
+        "VS Code",
+        "PyCharm",
+        "ResNet50",
+        "MobileNet",
+        "Xception"
+      ]
+    }
+  }
+}
