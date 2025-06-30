@@ -5,7 +5,7 @@ from transformers.pipelines import pipeline
 MODEL_NAME = "microsoft/phi-2"
 
 def load_model():
-    LOCAL_MODEL_PATH = "/home/sapien/dev/projects/Job-Sniff/cv_llm_scoring/models/phi-2"
+    LOCAL_MODEL_PATH = "/home/sapien/dev/projects/Job-Sniff/cv_llm_scoring/models/phi-1_5"
     tokenizer = AutoTokenizer.from_pretrained(
         LOCAL_MODEL_PATH,
         local_files_only=True,
@@ -16,19 +16,21 @@ def load_model():
         LOCAL_MODEL_PATH,
         local_files_only=True,
         trust_remote_code=True,
-        device_map="auto"
+        device_map="cpu"
     )
 
     pipe = pipeline(
         "text-generation",
         model=model,
         tokenizer=tokenizer,
-        device_map="auto",
-        torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32
+        device_map="cpu",
+        torch_dtype=torch.float16 
     )
+    print("model loaded successfully")
     return pipe
 
 model_pipe = load_model()
+
 
 # def generate_json(resume_text: str):
 #     prompt = """
