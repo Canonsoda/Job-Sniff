@@ -25,3 +25,8 @@ dist-ssr
 
 .env
 **/.env
+
+models
+uploads/Curriculum_vitae.pdf
+job_sniff.ipynb
+__pycache__

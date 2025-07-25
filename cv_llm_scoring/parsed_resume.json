@@ -1,0 +1,73 @@
+{
+  "extractedData": {
+    "name": "AADITYA RAJ",
+    "email": "helloaadityahere@gmail.com",
+    "phone": "+91 7060225009",
+    "skills": [
+      "Python",
+      "C/C++",
+      "SQL",
+      "Tensorflow",
+      "PyTorch",
+      "Keras",
+      "Huggingface",
+      "Langchain",
+      "Git",
+      "Docker",
+      "Jupyter-Notebook",
+      "VS Code",
+      "PyCharm",
+      "Pandas",
+      "NumPy",
+      "Matplotlib"
+    ],
+    "cgpa": null,
+    "shortlisted": false,
+    "education": [
+      {
+        "level": "Bachelor of Technology (Computer Science and Engineering)",
+        "institution": "Birla Institute of Technology, Mesra",
+        "board": null,
+        "year": "Present",
+        "percentage": "8.28"
+      },
+      {
+        "level": "12th",
+        "institution": "Delhi Public School, Ranchi",
+        "board": null,
+        "year": "2023",
+        "percentage": "96.6%"
+      }
+    ],
+    "workExperience": [
+      {
+        "position": "Research Assistant",
+        "company": "Birla Institute of Technology, Mesra",
+        "duration": "January 2025 \u2013 Present",
+        "description": "\u2022 Working under a professor to replicate and enhance the findings of the paper Powe of Alignment: Exploring the\neffect of face alignment on ASD Diagnosis using facial images\n\u2022 Investigating the impact of facial alignment on the accuracy of ASD diagnosis using deep learning models trained\non facial image datasets.\n\u2022 Fine-tuning state-of-the-art CNN architectures such as ResNet50, MobileNet, and Xception to evaluate\nperformance changes due to alignment techniques.\n\u2022 Experimenting with various face detection and preprocessing pipelines to optimize diagnostic accuracy and model\ngeneralization."
+      }
+    ],
+    "suggestions": {
+      "commonSkills": [
+        "Python",
+        "SQL",
+        "Git",
+        "Docker",
+        "Pandas",
+        "NumPy",
+        "Matplotlib"
+      ],
+      "uniqueSkills": [
+        "Tensorflow",
+        "PyTorch",
+        "Keras",
+        "Huggingface",
+        "Langchain",
+        "Jupyter-Notebook",
+        "VS Code",
+        "PyCharm",
+        "C/C++"
+      ]
+    }
+  }
+}
