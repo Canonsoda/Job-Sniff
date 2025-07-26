@@ -1,72 +1,101 @@
 {
   "extractedData": {
-    "name": "AADITYA RAJ",
-    "email": "helloaadityahere@gmail.com",
-    "phone": "+91 7060225009",
+    "name": "Aryan Kumar Dwivedi",
+    "email": "aryankumardwivedi11@gmail.com",
+    "phone": "+91-8797755062",
     "skills": [
-      "Python",
-      "C/C++",
+      "C",
+      "C++",
+      "Java",
+      "JavaScript",
       "SQL",
-      "Tensorflow",
-      "PyTorch",
-      "Keras",
-      "Huggingface",
-      "Langchain",
+      "HTML",
+      "CSS",
+      "React.js",
+      "Node.js",
+      "Express.js",
+      "MongoDB",
+      "Mongoose",
+      "REST APIs",
+      "Tailwind CSS",
       "Git",
-      "Docker",
-      "Jupyter-Notebook",
+      "GitHub",
+      "Postman",
+      "Appwrite",
       "VS Code",
-      "PyCharm",
-      "Pandas",
-      "NumPy",
-      "Matplotlib"
+      "JWT",
+      "Google OAuth",
+      "Elasticsearch",
+      "Data Structures and Algorithms (DSA)",
+      "Object-Oriented Programming (OOP)",
+      "Operating Systems",
+      "DBMS",
+      "Leadership",
+      "Team Collaboration",
+      "Event Management"
     ],
-    "cgpa": null,
+    "cgpa": "7.21",
     "shortlisted": false,
     "education": [
       {
-        "level": "Bachelor of Technology (Computer Science and Engineering)",
-        "institution": "Birla Institute of Technology, Mesra",
+        "level": "Bachelor of Technology (Electronics and Communication Engineering)",
+        "institution": "Birla Institute Of Technology,Mesra",
         "board": null,
-        "year": "Present",
-        "percentage": "8.28"
+        "year": "2023 \u2013 Present",
+        "percentage": null
+      },
+      {
+        "level": "10th",
+        "institution": "Sarala Birla Public School",
+        "board": null,
+        "year": "2010 \u2013 2023",
+        "percentage": "94.4%"
       },
       {
         "level": "12th",
-        "institution": "Delhi Public School, Ranchi",
+        "institution": "Sarala Birla Public School",
         "board": null,
-        "year": "2023",
-        "percentage": "96.6%"
+        "year": "2010 \u2013 2023",
+        "percentage": "85.0%"
       }
     ],
     "workExperience": [
       {
-        "position": "Research Assistant",
-        "company": "Birla Institute of Technology, Mesra",
-        "duration": "January 2025 \u2013 Present",
-        "description": "\u2022 Working under a professor to replicate and enhance the findings of the paper Powe of Alignment: Exploring the\neffect of face alignment on ASD Diagnosis using facial images\n\u2022 Investigating the impact of facial alignment on the accuracy of ASD diagnosis using deep learning models trained\non facial image datasets.\n\u2022 Fine-tuning state-of-the-art CNN architectures such as ResNet50, MobileNet, and Xception to evaluate\nperformance changes due to alignment techniques.\n\u2022 Experimenting with various face detection and preprocessing pipelines to optimize diagnostic accuracy and model\ngeneralization."
+        "position": "N/A",
+        "company": "BrokeBuddy",
+        "duration": "N/A",
+        "description": "Engineered a full-stack peer-to-peer lending platform supporting role-based dashboards, scalable APIs, and secure\nworkflows.\nImplemented authentication using JWT and Google OAuth with Passport.js, enhancing session security and access\ncontrol.\nBuilt robust RESTful APIs for loan management, interest calculation, repayment tracking, and transaction summaries.\nDecreased overdue repayments by 30% via automated email alerts using cron jobs and Nodemailer.\nDeveloped a modular, responsive frontend with React and Tailwind CSS, improving maintainability and user experience."
+      },
+      {
+        "position": "N/A",
+        "company": "JobSniff",
+        "duration": "N/A",
+        "description": "Developed a dual-role platform enabling applicants to upload resumes and HRs to filter candidates by keyword relevance.\nIntegrated Elasticsearch for fast, full-text resume search with scoring logic for skill-based filtering.\nCollaborated on NLP-based resume parsing for keyword extraction, improving recruiter efficiency in shortlisting.\nDesigned animated, drag-and-drop resume upload with real-time feedback using React.js and Tailwind CSS.\nImplemented JWT-secured APIs with role-based middleware, ensuring secure and scoped access to resources."
       }
     ],
     "suggestions": {
       "commonSkills": [
-        "Python",
+        "JavaScript",
         "SQL",
+        "HTML",
+        "CSS",
+        "React.js",
+        "Node.js",
+        "Express.js",
+        "MongoDB",
+        "Mongoose",
+        "REST APIs",
         "Git",
-        "Docker",
-        "Pandas",
-        "NumPy",
-        "Matplotlib"
+        "GitHub",
+        "Postman",
+        "VS Code",
+        "JWT",
+        "Google OAuth",
+        "Elasticsearch"
       ],
       "uniqueSkills": [
-        "Tensorflow",
-        "PyTorch",
-        "Keras",
-        "Huggingface",
-        "Langchain",
-        "Jupyter-Notebook",
-        "VS Code",
-        "PyCharm",
-        "C/C++"
+        "Tailwind CSS",
+        "Appwrite"
       ]
     }
   }
