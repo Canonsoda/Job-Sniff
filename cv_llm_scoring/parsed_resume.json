@@ -1,101 +1,84 @@
 {
   "extractedData": {
-    "name": "Aryan Kumar Dwivedi",
-    "email": "aryankumardwivedi11@gmail.com",
-    "phone": "+91-8797755062",
+    "name": "ARNAV KUMAR",
+    "email": "arnav170905@gmail.com",
+    "phone": "+91-8340565157",
     "skills": [
       "C",
       "C++",
+      "Dart",
       "Java",
-      "JavaScript",
+      "Data Structures and Algorithms",
+      "Operating Systems",
+      "Object-Oriented Programming",
+      "Database Management Systems",
       "SQL",
-      "HTML",
-      "CSS",
-      "React.js",
-      "Node.js",
-      "Express.js",
-      "MongoDB",
-      "Mongoose",
-      "REST APIs",
-      "Tailwind CSS",
+      "Firebase",
       "Git",
       "GitHub",
       "Postman",
-      "Appwrite",
+      "Linux Basics",
+      "Android Studio",
       "VS Code",
-      "JWT",
-      "Google OAuth",
-      "Elasticsearch",
-      "Data Structures and Algorithms (DSA)",
-      "Object-Oriented Programming (OOP)",
-      "Operating Systems",
-      "DBMS",
       "Leadership",
-      "Team Collaboration",
-      "Event Management"
+      "Teamwork",
+      "Event Management",
+      "Flutter",
+      "Python",
+      "Render"
     ],
-    "cgpa": "7.21",
+    "cgpa": "8.83",
     "shortlisted": false,
     "education": [
       {
-        "level": "Bachelor of Technology (Electronics and Communication Engineering)",
-        "institution": "Birla Institute Of Technology,Mesra",
+        "level": "Bachelor of Technology (Computer Science and Engineering)",
+        "institution": "Birla Institute Of Technology, Mesra",
         "board": null,
-        "year": "2023 \u2013 Present",
+        "year": "2023-2027",
         "percentage": null
       },
       {
         "level": "10th",
-        "institution": "Sarala Birla Public School",
+        "institution": "DAV Public School, Bariatu",
         "board": null,
-        "year": "2010 \u2013 2023",
-        "percentage": "94.4%"
+        "year": "2019-2023",
+        "percentage": "97%"
       },
       {
         "level": "12th",
-        "institution": "Sarala Birla Public School",
+        "institution": "DAV Public School, Bariatu",
         "board": null,
-        "year": "2010 \u2013 2023",
-        "percentage": "85.0%"
+        "year": "2019-2023",
+        "percentage": "92.6%"
       }
     ],
     "workExperience": [
       {
-        "position": "N/A",
-        "company": "BrokeBuddy",
-        "duration": "N/A",
-        "description": "Engineered a full-stack peer-to-peer lending platform supporting role-based dashboards, scalable APIs, and secure\nworkflows.\nImplemented authentication using JWT and Google OAuth with Passport.js, enhancing session security and access\ncontrol.\nBuilt robust RESTful APIs for loan management, interest calculation, repayment tracking, and transaction summaries.\nDecreased overdue repayments by 30% via automated email alerts using cron jobs and Nodemailer.\nDeveloped a modular, responsive frontend with React and Tailwind CSS, improving maintainability and user experience."
+        "position": "Techincal Team Member",
+        "company": "IEEE, BIT Mesra",
+        "duration": "FEB 2024 \u2013 PRESENT",
+        "description": "\u2022 Organized and conducted a C++ workshop for over 400+ students.\n\u2022 Led the recruitment processfor IEEE BIT Mesra, overseeing the participation of 400+ students, designing assessments, and conducting interviews."
       },
       {
-        "position": "N/A",
-        "company": "JobSniff",
-        "duration": "N/A",
-        "description": "Developed a dual-role platform enabling applicants to upload resumes and HRs to filter candidates by keyword relevance.\nIntegrated Elasticsearch for fast, full-text resume search with scoring logic for skill-based filtering.\nCollaborated on NLP-based resume parsing for keyword extraction, improving recruiter efficiency in shortlisting.\nDesigned animated, drag-and-drop resume upload with real-time feedback using React.js and Tailwind CSS.\nImplemented JWT-secured APIs with role-based middleware, ensuring secure and scoped access to resources."
+        "position": "Team Lead",
+        "company": "Peacify",
+        "duration": "DEC 2024",
+        "description": "\u2022 Led a cross-functional team of 3 members, coordinating development efforts across frontend, backend, and Machine learning.\n\u2022 Oversaw project timelines, task delegation, and team collaborationfor efficient execution."
       }
     ],
     "suggestions": {
       "commonSkills": [
-        "JavaScript",
+        "Python",
         "SQL",
-        "HTML",
-        "CSS",
-        "React.js",
-        "Node.js",
-        "Express.js",
-        "MongoDB",
-        "Mongoose",
-        "REST APIs",
         "Git",
-        "GitHub",
-        "Postman",
-        "VS Code",
-        "JWT",
-        "Google OAuth",
-        "Elasticsearch"
+        "C++",
+        "Java"
       ],
       "uniqueSkills": [
-        "Tailwind CSS",
-        "Appwrite"
+        "Dart",
+        "Flutter",
+        "Firebase",
+        "Render"
       ]
     }
   }

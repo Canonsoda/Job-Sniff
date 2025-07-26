@@ -4,6 +4,7 @@ import FormData from "form-data";
 import Resume from "../models/resume.model.js";
 import elasticClient from "../config/elasticSearch.js";
 import path from "path";
+import meiliClient from "../config/meiliSearch.js";
 
 
 export const uploadResume = async (req, res) => {
@@ -15,11 +16,12 @@ export const uploadResume = async (req, res) => {
     const formData = new FormData();
     formData.append("resume", fs.createReadStream(req.file.path));
 
-    const response = await axios.post("http://localhost:5001/parse-resume", formData, {
+    const CV_LLM_URL = process.env.CV_LLM_URL || "http://127.0.0.1:5001";
+    const response = await axios.post(`${CV_LLM_URL}/parse-resume`, formData, {
       headers: formData.getHeaders(),
     });
 
-    const extractedData = response.data;
+    const extractedData = JSON.parse(response.data);
 
     const resume = new Resume({
       user: req.user.id,
@@ -29,20 +31,39 @@ export const uploadResume = async (req, res) => {
 
     await resume.save();
 
-    await elasticClient.index({
-      index: 'resumes',
+    // await elasticClient.index({
+    //   index: 'resumes',
+    //   id: resume._id.toString(),
+    //   document: {
+    //     userId: req.user.id,
+    //     name: extractedData.name,
+    //     email: extractedData.email,
+    //     phone: extractedData.phone,
+    //     cgpa: extractedData.cgpa,
+    //     skills: extractedData.skills ? extractedData.skills.join(', ') : '',
+    //     education: extractedData.education || [],
+    //     workExperience: extractedData.workExperience || []
+    //   },
+    // });
+    try {
+      await meiliClient.createIndex('resumes', { primaryKey: 'id' });
+    } catch (error) {
+      // Index already exists, ignore error
+    }
+ 
+    // Add to Meilisearch index
+    const index = meiliClient.index('resumes');
+    await index.addDocuments([{
       id: resume._id.toString(),
-      document: {
-        userId: req.user.id,
-        name: extractedData.name,
-        email: extractedData.email,
-        phone: extractedData.phone,
-        cgpa: extractedData.cgpa,
-        skills: extractedData.skills.join(', '),
-        education: extractedData.education || [],
-        workExperience: extractedData.workExperience || []
-      },
-    });
+      userId: req.user.id,
+      name: extractedData.extractedData.name,
+      email: extractedData.extractedData.email,
+      phone: extractedData.extractedData.phone,
+      cgpa: extractedData.extractedData.cgpa,
+      skills: extractedData.extractedData.skills ? extractedData.extractedData.skills.join(', ') : '',
+      education: extractedData.extractedData.education || [],
+      workExperience: extractedData.extractedData.workExperience || []
+    }]);
 
     if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
 
@@ -64,43 +85,25 @@ export const searchResumes = async (req, res) => {
   }
 
   try {
-    const elasticQuery = {
-      bool: {
-        must: [],
-        filter: []
-      }
-    };
-
+    const index = meiliClient.index('resumes');
+    
+    let searchParams = {};
     if (query) {
-      elasticQuery.bool.must.push({
-        multi_match: {
-          query,
-          fields: ['name', 'email', 'phone', 'skills', 'rawText'],
-          fuzziness: "auto"
-        }
-      });
+      searchParams.q = query;
     }
-
+    
     if (minCgpa || maxCgpa) {
-      elasticQuery.bool.filter.push({
-        range: {
-          cgpa: {
-            ...(minCgpa && { gte: parseFloat(minCgpa) }),
-            ...(maxCgpa && { lte: parseFloat(maxCgpa) }),
-          }
-        }
-      });
+      searchParams.filter = [];
+      if (minCgpa) searchParams.filter.push(`cgpa >= ${minCgpa}`);
+      if (maxCgpa) searchParams.filter.push(`cgpa <= ${maxCgpa}`);
     }
 
-    const result = await elasticClient.search({
-      index: 'resumes',
-      query: elasticQuery
-    });
+    const result = await index.search(query || '', searchParams);
 
     res.json({
-      results: result.hits.hits.map(hit => ({
-        id: hit._id,
-        ...hit._source
+      results: result.hits.map(hit => ({
+        id: hit.id,
+        ...hit
       }))
     });
 

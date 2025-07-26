@@ -11,7 +11,7 @@ llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0)
 parser = PydanticOutputParser(pydantic_object=ParsedResume)
 
 def extract_text_from_pdf(pdf_path):
-    loader = PyPDFLoader("./uploads/Curriculum_vitae.pdf")
+    loader = PyPDFLoader(pdf_path)
     docs = loader.load()
     resume_text = " ".join([doc.page_content for doc in docs])
     return resume_text
