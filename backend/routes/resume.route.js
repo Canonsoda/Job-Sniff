@@ -4,6 +4,7 @@ import fs from "fs";
 import path from "path";
 import { uploadResume , searchResumes,shortListed,downloadResume } from "../controller/resume.controller.js";
 import { authMiddleware } from "../middleware/auth.middleware.js";
+import Resume from "../models/resume.model.js";
 
 
 const resumeRoute = express.Router();

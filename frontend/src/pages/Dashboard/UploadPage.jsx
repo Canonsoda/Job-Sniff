@@ -38,7 +38,8 @@ const Upload = () => {
       toast.success("Resume uploaded successfully!");
       setFile(null);
     } catch (err) {
-      toast.error("Upload failed. Try again.");
+      console.error("Upload error:", err.response?.data || err.message);
+      toast.error(err.response?.data?.message || "Upload failed. Try again.");
     } finally {
       setIsUploading(false);
     }
