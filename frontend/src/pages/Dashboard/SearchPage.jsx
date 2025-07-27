@@ -12,6 +12,26 @@ const Searches = () => {
   const [maxCgpa, setMaxCgpa] = useState(10);
   const [selectedSkills, setSelectedSkills] = useState([]);
   const [sortOrder, setSortOrder] = useState("desc");
+  const [suggestions, setSuggestions] = useState([]);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(true);
+
+  // Fetch skill suggestions on component mount
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/resume/dashboard-stats`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setSuggestions(res.data.uniqueSkills || []);
+      } catch (err) {
+        console.error("Failed to fetch suggestions:", err);
+      } finally {
+        setIsLoadingSuggestions(false);
+      }
+    };
+    fetchSuggestions();
+  }, []);
 
   const handleSearch = async () => {
     if (!query.trim()) return toast.error("Please enter a search query.");
@@ -26,6 +46,15 @@ const Searches = () => {
     } catch (err) {
       toast.error("Search failed");
     }
+  };
+
+  // New function to handle suggestion clicks
+  const handleSuggestionClick = (skill) => {
+    setQuery(skill);
+    // Trigger search automatically when suggestion is clicked
+    setTimeout(() => {
+      handleSearch();
+    }, 100);
   };
 
   useEffect(() => {
@@ -129,6 +158,24 @@ const Searches = () => {
           Search
         </button>
       </div>
+
+      {/* Search Suggestions */}
+      {!isLoadingSuggestions && suggestions.length > 0 && (
+        <div className="bg-white/5 p-5 rounded-xl border border-white/10">
+          <h3 className="text-gray-300 text-sm font-medium mb-3">Popular Skills</h3>
+          <div className="flex flex-wrap gap-2">
+            {suggestions.slice(0, 10).map((skill) => (
+              <button
+                key={skill}
+                onClick={() => handleSuggestionClick(skill)}
+                className="px-3 py-1 bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 hover:text-teal-200 rounded-full text-sm transition-all duration-200 border border-teal-500/30 hover:border-teal-500/50"
+              >
+                {skill}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
