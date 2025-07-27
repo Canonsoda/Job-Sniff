@@ -2,7 +2,7 @@ import express from "express";
 import multer from "multer";
 import fs from "fs";
 import path from "path";
-import { uploadResume , searchResumes,shortListed,downloadResume } from "../controller/resume.controller.js";
+import { uploadResume , searchResumes,shortListed,downloadResume,getDashboardStats } from "../controller/resume.controller.js";
 import { authMiddleware } from "../middleware/auth.middleware.js";
 import Resume from "../models/resume.model.js";
 
@@ -23,7 +23,7 @@ resumeRoute.post("/upload", authMiddleware, upload.single("resume"), uploadResum
 
 resumeRoute.get("/search", authMiddleware,searchResumes)
 resumeRoute.get("/shortlisted",authMiddleware,shortListed)
-
+resumeRoute.get("/dashboard-stats",authMiddleware,getDashboardStats)
 resumeRoute.patch("/:id/shortlist", authMiddleware, async (req, res) => {
   const { id } = req.params;
   const { shortlisted } = req.body;
