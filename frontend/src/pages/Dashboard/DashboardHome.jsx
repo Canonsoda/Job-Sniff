@@ -7,43 +7,65 @@ import {
   Hourglass,
 } from "lucide-react";
 import UploadSection from "../../components/UploadSection";
-
-const stats = [
-  {
-    title: "Total Resumes",
-    value: 12,
-    icon: <FileText className="text-blue-400" size={28} />,
-    color: "text-blue-400",
-    border: "from-blue-500 to-blue-700",
-  },
-  {
-    title: "Shortlisted",
-    value: 5,
-    icon: <CheckCircle className="text-green-400" size={28} />,
-    color: "text-green-400",
-    border: "from-green-500 to-green-700",
-  },
-  {
-    title: "Pending Review",
-    value: 7,
-    icon: <Hourglass className="text-yellow-400" size={28} />,
-    color: "text-yellow-400",
-    border: "from-yellow-500 to-yellow-700",
-  },
-];
-
-const suggestions = [
-  "Machine Learning",
-  "Data Analysis",
-  "Senior Software Engineer",
-  "Python",
-  "Java",
-  "Bachelor of Science",
-];
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { toast } from "react-hot-toast";
 
 const DashboardHome = () => {
+  const [stats, setStats] = useState([
+    {
+      title: "Total Resumes",
+      value: 0,
+      icon: <FileText className="text-blue-400" size={28} />,
+      color: "text-blue-400",
+      border: "from-blue-500 to-blue-700",
+    },
+    {
+      title: "Shortlisted",
+      value: 0,
+      icon: <CheckCircle className="text-green-400" size={28} />,
+      color: "text-green-400",
+      border: "from-green-500 to-green-700",
+    },
+    {
+      title: "Pending Review",
+      value: 0,
+      icon: <Hourglass className="text-yellow-400" size={28} />,
+      color: "text-yellow-400",
+      border: "from-yellow-500 to-yellow-700",
+    },
+  ]);
+  const [suggestions, setSuggestions] = useState([]);
   const { user } = useAuth();
   const isHR = user?.role === "hr";
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchDashboardStats = async () => {
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/resume/dashboard-stats`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      const { stats: apiStats, uniqueSkills } = res.data;
+      
+      setStats(prev => prev.map(stat => ({
+        ...stat,
+        value: apiStats[stat.title.toLowerCase().replace(' ', '')] || 0
+      })));
+      
+      setSuggestions(uniqueSkills);
+    } catch (err) {
+      toast.error("Failed to fetch dashboard stats");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardStats();
+  }, []);
 
   return (
     <div className="space-y-10 relative z-10">
@@ -69,27 +91,46 @@ const DashboardHome = () => {
       {/* HR Stats Section */}
       {isHR && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {stats.map((stat, i) => (
-            <motion.div
-              key={stat.title}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.2 }}
-              className="rounded-2xl p-6 bg-white/5 border border-white/10 shadow-xl backdrop-blur-md hover:scale-105 transition-transform relative overflow-hidden"
-            >
-              <div
-                className={`absolute inset-0 rounded-2xl blur-xl opacity-25 bg-gradient-to-br ${stat.border}`}
-              />
-              <div className="relative z-10 space-y-2">
-                <div className="flex items-center justify-between text-gray-400">
-                  <span className="text-sm">{stat.title}</span>
-                  {stat.icon}
+          {isLoading ? (
+            // Loading skeleton
+            Array.from({ length: 3 }).map((_, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.2 }}
+                className="rounded-2xl p-6 bg-white/5 border border-white/10 shadow-xl backdrop-blur-md"
+              >
+                <div className="animate-pulse">
+                  <div className="h-4 bg-white/10 rounded mb-2"></div>
+                  <div className="h-8 bg-white/10 rounded mb-2"></div>
+                  <div className="h-1 bg-white/10 rounded"></div>
                 </div>
-                <div className={`text-4xl font-bold ${stat.color}`}>{stat.value}</div>
-                <div className={`h-[3px] w-full bg-gradient-to-r ${stat.border} rounded-full`} />
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            ))
+          ) : (
+            stats.map((stat, i) => (
+              <motion.div
+                key={stat.title}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.2 }}
+                className="rounded-2xl p-6 bg-white/5 border border-white/10 shadow-xl backdrop-blur-md hover:scale-105 transition-transform relative overflow-hidden"
+              >
+                <div
+                  className={`absolute inset-0 rounded-2xl blur-xl opacity-25 bg-gradient-to-br ${stat.border}`}
+                />
+                <div className="relative z-10 space-y-2">
+                  <div className="flex items-center justify-between text-gray-400">
+                    <span className="text-sm">{stat.title}</span>
+                    {stat.icon}
+                  </div>
+                  <div className={`text-4xl font-bold ${stat.color}`}>{stat.value}</div>
+                  <div className={`h-[3px] w-full bg-gradient-to-r ${stat.border} rounded-full`} />
+                </div>
+              </motion.div>
+            ))
+          )}
         </div>
       )}
 
@@ -130,7 +171,7 @@ const DashboardHome = () => {
           className="bg-white/5 p-6 rounded-2xl border border-white/10 shadow-xl backdrop-blur-md"
         >
           <p className="text-gray-300">
-            Your resume is under review. We’ll notify you once a recruiter shortlists it.
+            Your resume is under review. We'll notify you once a recruiter shortlists it.
           </p>
         </motion.div>
       )}

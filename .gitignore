@@ -30,3 +30,5 @@ models
 uploads/Curriculum_vitae.pdf
 job_sniff.ipynb
 __pycache__
+backend/uploads/*.pdf
+cv_llm_scoring/uploads/*.pdf

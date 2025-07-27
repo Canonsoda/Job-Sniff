@@ -140,3 +140,41 @@ export const downloadResume = async (req, res) => {
     res.status(500).json({ message: "Download failed", error: err.message });
   }
 };
+export const getDashboardStats = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    // Get total resumes count
+    const totalResumes = await Resume.countDocuments({ user: userId });
+    
+    // Get shortlisted resumes count
+    const shortlistedResumes = await Resume.countDocuments({ 
+      user: userId, 
+      "extractedData.shortlisted": true 
+    });
+    
+    // Get pending review count (not shortlisted)
+    const pendingReview = await Resume.countDocuments({ 
+      user: userId, 
+      "extractedData.shortlisted": false 
+    });
+
+    // Get unique skills from all resumes
+    const allResumes = await Resume.find({ user: userId });
+    const allSkills = allResumes.flatMap(resume => 
+      resume.extractedData.extractedData?.skills || []
+    );
+    const uniqueSkills = [...new Set(allSkills)];
+
+    res.json({
+      stats: {
+        totalResumes,
+        shortlistedResumes,
+        pendingReview
+      },
+      uniqueSkills: uniqueSkills.slice(0, 10) // Top 10 skills
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch dashboard stats", error: err.message });
+  }
+};

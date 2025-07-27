@@ -1,84 +1,91 @@
 {
   "extractedData": {
-    "name": "ARNAV KUMAR",
-    "email": "arnav170905@gmail.com",
-    "phone": "+91-8340565157",
+    "name": "Aryan Kumar Dwivedi",
+    "email": "aryankumardwivedi11@gmail.com",
+    "phone": "+91-8797755062",
     "skills": [
       "C",
       "C++",
-      "Dart",
       "Java",
-      "Data Structures and Algorithms",
+      "JavaScript",
+      "React.js",
+      "Node.js",
+      "Express.js",
+      "MongoDB",
+      "Data Structure and Algorithms",
       "Operating Systems",
       "Object-Oriented Programming",
-      "Database Management Systems",
+      "DataBase Management System",
       "SQL",
-      "Firebase",
       "Git",
       "GitHub",
       "Postman",
-      "Linux Basics",
-      "Android Studio",
+      "Appwrite",
       "VS Code",
       "Leadership",
       "Teamwork",
       "Event Management",
-      "Flutter",
-      "Python",
-      "Render"
+      "Elasticsearch",
+      "Tailwind CSS",
+      "NLP"
     ],
-    "cgpa": "8.83",
+    "cgpa": "7.21",
     "shortlisted": false,
     "education": [
       {
-        "level": "Bachelor of Technology (Computer Science and Engineering)",
-        "institution": "Birla Institute Of Technology, Mesra",
+        "level": "Bachelor of Technology (Electronics and Communication Engineering)",
+        "institution": "Birla Institute Of Technology,Mesra",
         "board": null,
-        "year": "2023-2027",
+        "year": "Present",
         "percentage": null
       },
       {
         "level": "10th",
-        "institution": "DAV Public School, Bariatu",
+        "institution": "Sarala Birla Public School",
         "board": null,
-        "year": "2019-2023",
-        "percentage": "97%"
+        "year": "2023",
+        "percentage": "94.4%"
       },
       {
         "level": "12th",
-        "institution": "DAV Public School, Bariatu",
+        "institution": "Sarala Birla Public School",
         "board": null,
-        "year": "2019-2023",
-        "percentage": "92.6%"
+        "year": "2023",
+        "percentage": "85.0%"
       }
     ],
     "workExperience": [
       {
-        "position": "Techincal Team Member",
-        "company": "IEEE, BIT Mesra",
-        "duration": "FEB 2024 \u2013 PRESENT",
-        "description": "\u2022 Organized and conducted a C++ workshop for over 400+ students.\n\u2022 Led the recruitment processfor IEEE BIT Mesra, overseeing the participation of 400+ students, designing assessments, and conducting interviews."
+        "position": null,
+        "company": null,
+        "duration": null,
+        "description": "BrokeBuddy | MongoDB, Express, Node, React, Passport GitHub | Live Link\n\u2022 Built a secure lending platform with role-based dashboards (borrower/lender), JWT + Google OAuth auth, loan\ntracking, repayment validation, and automated email reminders using Node.js, React, MongoDB, and Tailwind CSS.\n\u2022 Developed with the MERN stack and implemented email automation using Nodemailer and cron jobs.\n\u2022 Integrated interest calculation, smart repayment validation, and secure route protection based on user ownership.\n\u2022 Created real-time dashboards to display active loans, repayments, and transaction stats.\n\u2022 Achieved seamless role switching and protected route access using JWT and Passport strategies.\n\u2022 Designed a fully responsive UI with Tailwind CSS and built reusable components in React."
       },
       {
-        "position": "Team Lead",
-        "company": "Peacify",
-        "duration": "DEC 2024",
-        "description": "\u2022 Led a cross-functional team of 3 members, coordinating development efforts across frontend, backend, and Machine learning.\n\u2022 Oversaw project timelines, task delegation, and team collaborationfor efficient execution."
+        "position": null,
+        "company": null,
+        "duration": null,
+        "description": "Job Sniff | React, Node.js, Express, MongoDB, Elasticsearch, Tailwind CSS GitHub | Live Link\n\u2022 Developed a dual-role platform where job applicants upload resumes and HRs view and filter them based on skill\nrelevance.\n\u2022 Used Elasticsearch to enable fast and accurate resume search with full-text matching and custom scoring logic.\n\u2022 Implemented resume parsing, NLP-based keyword extraction, and ranking to improve recruiter efficiency.\n\u2022 Built a clean, animated drag-and-drop upload interface with real-time dashboard updates.\n\u2022 Secured role-based dashboards and API routes using JWT authentication and user context."
       }
     ],
     "suggestions": {
       "commonSkills": [
-        "Python",
+        "JavaScript",
+        "React.js",
+        "Node.js",
+        "MongoDB",
         "SQL",
         "Git",
-        "C++",
-        "Java"
+        "GitHub"
       ],
       "uniqueSkills": [
-        "Dart",
-        "Flutter",
-        "Firebase",
-        "Render"
+        "Appwrite",
+        "Elasticsearch",
+        "Tailwind CSS",
+        "Passport",
+        "JWT",
+        "NLP",
+        "Postman"
       ]
     }
   }
