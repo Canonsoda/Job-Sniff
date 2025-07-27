@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 
-const UploadSection = ({ onUploadComplete }) => {
+const UploadSection = ({ onUploadComplete, onRefresh }) => {
   const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -39,6 +39,7 @@ const UploadSection = ({ onUploadComplete }) => {
 
       toast.success("Resume uploaded successfully!");
       onUploadComplete?.();
+      onRefresh?.();
     } catch (err) {
       toast.error("Upload failed!");
     } finally {
