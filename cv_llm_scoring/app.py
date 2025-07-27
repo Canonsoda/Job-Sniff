@@ -24,9 +24,17 @@ def post_resume():
     try:
         # Process the uploaded resume PDF
         final_json = process_resume(file_path)
+        
+        # Clean up the file after processing
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            print(f'CV LLM file cleaned up: {file_path}')
+        
         return jsonify(final_json)
     except Exception as e:
-        # Return error message and optionally log the traceback
+        # Clean up on error too
+        if os.path.exists(file_path):
+            os.remove(file_path)
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':

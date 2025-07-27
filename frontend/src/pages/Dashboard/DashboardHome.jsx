@@ -5,6 +5,7 @@ import {
   FileText,
   CheckCircle,
   Hourglass,
+  RefreshCw,
 } from "lucide-react";
 import UploadSection from "../../components/UploadSection";
 import { useEffect, useState } from "react";
@@ -63,6 +64,10 @@ const DashboardHome = () => {
     }
   };
 
+  const handleRefresh = () => {
+    fetchDashboardStats();
+  };
+
   useEffect(() => {
     fetchDashboardStats();
   }, []);
@@ -70,23 +75,36 @@ const DashboardHome = () => {
   return (
     <div className="space-y-10 relative z-10">
       {/* Welcome Message */}
-      <motion.h1
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="text-4xl font-bold text-white tracking-tight"
-      >
-        Welcome back, {user?.name?.split(" ")[0]} 👋
-      </motion.h1>
-
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-        className="text-lg text-gray-400 mt-1"
-      >
-        {isHR ? "Here's your overview as a recruiter." : "Your resume status summary."}
-      </motion.p>
+      <div className="flex items-center justify-between">
+        <div>
+          <motion.h1
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-4xl font-bold text-white tracking-tight"
+          >
+            Welcome back, {user?.name?.split(" ")[0]} 👋
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="text-lg text-gray-400 mt-1"
+          >
+            {isHR ? "Here's your overview as a recruiter." : "Your resume status summary."}
+          </motion.p>
+        </div>
+        
+        {isHR && (
+          <button
+            onClick={handleRefresh}
+            disabled={isLoading}
+            className="p-3 bg-white/10 rounded-xl hover:bg-white/20 transition disabled:opacity-50"
+          >
+            <RefreshCw className={`w-5 h-5 text-white ${isLoading ? 'animate-spin' : ''}`} />
+          </button>
+        )}
+      </div>
 
       {/* HR Stats Section */}
       {isHR && (
@@ -135,7 +153,7 @@ const DashboardHome = () => {
       )}
 
       {/* Upload Component */}
-      <UploadSection />
+      <UploadSection onRefresh={fetchDashboardStats} />
 
       {/* AI Suggestions */}
       {isHR && (

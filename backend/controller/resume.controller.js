@@ -65,7 +65,10 @@ export const uploadResume = async (req, res) => {
       workExperience: extractedData.extractedData.workExperience || []
     }]);
 
-    if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+    if (fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+      console.log('Backend file cleaned up:', req.file.path);
+    }
 
     res.status(201).json({
       message: "Resume uploaded and processed",
