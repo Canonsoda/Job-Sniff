@@ -1,8 +1,8 @@
 import json
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_core.prompts import PromptTemplate
-from langchain_core.output_parsers import PydanticOutputParser
-from langchain_community.document_loaders import PyPDFLoader
+from langchain.prompts import PromptTemplate
+from langchain.output_parsers import PydanticOutputParser
+from langchain.document_loaders import PyPDFLoader
 from dotenv import load_dotenv
 from formats import ParsedResume
 load_dotenv()
