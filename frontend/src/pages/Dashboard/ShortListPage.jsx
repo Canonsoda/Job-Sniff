@@ -93,15 +93,35 @@ const Shortlisted = () => {
                 ))}
               </div>
 
-              <a
-                href={`${import.meta.env.VITE_API_URL}/resume/${res._id}/download`}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={async () => {
+                  try {
+                    const token = localStorage.getItem("token");
+                    const response = await axios.get(`${import.meta.env.VITE_API_URL}/resume/${res._id}/download`, {
+                      headers: { Authorization: `Bearer ${token}` },
+                      responseType: 'blob'
+                    });
+                    
+                    // Create download link for PDF
+                    const url = window.URL.createObjectURL(new Blob([response.data]));
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.setAttribute('download', res.originalFileName || 'resume.pdf');
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                    window.URL.revokeObjectURL(url);
+                    
+                    toast.success("Resume downloaded successfully!");
+                  } catch (err) {
+                    toast.error("Download failed");
+                  }
+                }}
                 className="mt-3 inline-flex items-center gap-1 text-sm text-teal-300 hover:text-teal-400"
               >
                 <Download size={16} />
                 Download Resume
-              </a>
+              </button>
             </motion.div>
           ))}
         </div>

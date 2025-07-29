@@ -1,91 +1,91 @@
 {
   "extractedData": {
-    "name": "Aryan Kumar Dwivedi",
-    "email": "aryankumardwivedi11@gmail.com",
-    "phone": "+91-8797755062",
+    "name": "Arsh Sinha",
+    "email": "sinhaarsh2005@gmail.com",
+    "phone": "+91-9341081113",
     "skills": [
-      "C",
+      "DSA",
+      "CP",
+      "Front-end development",
+      "OOPS concepts",
       "C++",
-      "Java",
-      "JavaScript",
-      "React.js",
-      "Node.js",
-      "Express.js",
-      "MongoDB",
-      "Data Structure and Algorithms",
-      "Operating Systems",
-      "Object-Oriented Programming",
-      "DataBase Management System",
+      "C",
+      "Dart",
+      "Flutter",
       "SQL",
-      "Git",
-      "GitHub",
-      "Postman",
-      "Appwrite",
+      "C++",
+      "Dart",
+      "HTML",
+      "SQL",
+      "JavaScript",
+      "Flutter",
       "VS Code",
-      "Leadership",
-      "Teamwork",
-      "Event Management",
-      "Elasticsearch",
-      "Tailwind CSS",
-      "NLP"
+      "Android Studio",
+      "Canva"
     ],
-    "cgpa": "7.21",
+    "cgpa": "7.75",
     "shortlisted": false,
     "education": [
       {
-        "level": "Bachelor of Technology (Electronics and Communication Engineering)",
-        "institution": "Birla Institute Of Technology,Mesra",
+        "level": "B.Tech",
+        "institution": "Birla Institute Of Technology, Mesra",
         "board": null,
-        "year": "Present",
+        "year": "2023 \u2013 2027",
         "percentage": null
       },
       {
         "level": "10th",
-        "institution": "Sarala Birla Public School",
+        "institution": "Delhi Public School, Ranchi",
         "board": null,
-        "year": "2023",
-        "percentage": "94.4%"
+        "year": "2011 \u2013 2023",
+        "percentage": "94.6%"
       },
       {
         "level": "12th",
-        "institution": "Sarala Birla Public School",
+        "institution": "Delhi Public School, Ranchi",
         "board": null,
-        "year": "2023",
-        "percentage": "85.0%"
+        "year": "2011 \u2013 2023",
+        "percentage": "94.8%"
       }
     ],
     "workExperience": [
       {
         "position": null,
-        "company": null,
-        "duration": null,
-        "description": "BrokeBuddy | MongoDB, Express, Node, React, Passport GitHub | Live Link\n\u2022 Built a secure lending platform with role-based dashboards (borrower/lender), JWT + Google OAuth auth, loan\ntracking, repayment validation, and automated email reminders using Node.js, React, MongoDB, and Tailwind CSS.\n\u2022 Developed with the MERN stack and implemented email automation using Nodemailer and cron jobs.\n\u2022 Integrated interest calculation, smart repayment validation, and secure route protection based on user ownership.\n\u2022 Created real-time dashboards to display active loans, repayments, and transaction stats.\n\u2022 Achieved seamless role switching and protected route access using JWT and Passport strategies.\n\u2022 Designed a fully responsive UI with Tailwind CSS and built reusable components in React."
+        "company": "Hospital Bed Management System",
+        "duration": "2024 - 25",
+        "description": "Developing a prototype with dual interfaces: one for hospitals and one for users.\nHospitals can update real-time data such as bed availability, on-duty doctors, and other critical information\nevery 20\u201330 minutes.\nUsers can search for available hospital beds in real time to facilitate faster emergency response."
       },
       {
         "position": null,
-        "company": null,
-        "duration": null,
-        "description": "Job Sniff | React, Node.js, Express, MongoDB, Elasticsearch, Tailwind CSS GitHub | Live Link\n\u2022 Developed a dual-role platform where job applicants upload resumes and HRs view and filter them based on skill\nrelevance.\n\u2022 Used Elasticsearch to enable fast and accurate resume search with full-text matching and custom scoring logic.\n\u2022 Implemented resume parsing, NLP-based keyword extraction, and ranking to improve recruiter efficiency.\n\u2022 Built a clean, animated drag-and-drop upload interface with real-time dashboard updates.\n\u2022 Secured role-based dashboards and API routes using JWT authentication and user context."
+        "company": "Quiz-App",
+        "duration": "2024",
+        "description": "Developed a quiz-based app featuring multiple-choice questions.\nDisplays a final score summary upon quiz completion.\nDesigned a clean and responsive UI to enhance user interaction and input experience."
+      },
+      {
+        "position": null,
+        "company": "MoodSync",
+        "duration": "2024",
+        "description": "Built a web-based application that suggests songs based on the user\u2019s selected mood.\nUtilized JavaScript to map moods to a curated song library, selecting tracks randomly per category.\nIncludes additional options for random song or playlist recommendations."
       }
     ],
     "suggestions": {
       "commonSkills": [
-        "JavaScript",
-        "React.js",
-        "Node.js",
-        "MongoDB",
         "SQL",
-        "Git",
-        "GitHub"
+        "HTML",
+        "JavaScript",
+        "C++",
+        "Dart"
       ],
       "uniqueSkills": [
-        "Appwrite",
-        "Elasticsearch",
-        "Tailwind CSS",
-        "Passport",
-        "JWT",
-        "NLP",
-        "Postman"
+        "Flutter",
+        "Firebase",
+        "VS Code",
+        "Android Studio",
+        "Canva",
+        "DSA",
+        "CP",
+        "Front-end development",
+        "OOPS concepts"
       ]
     }
   }
