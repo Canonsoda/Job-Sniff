@@ -5,7 +5,7 @@ langchain-core>=0.1.7
 langchain-community==0.0.10
 langchain-google-genai==0.0.6
 PyPDF2==3.0.1
-pydantic==2.5.0
+pydantic==1.10.13
 python-dotenv==1.0.0
 requests==2.31.0
 Werkzeug==3.0.0
