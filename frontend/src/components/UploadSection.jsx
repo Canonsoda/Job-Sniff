@@ -13,6 +13,7 @@ const UploadSection = ({ onUploadComplete, onRefresh }) => {
   const isHR = user?.role === "hr";
 
   const API_URL = import.meta.env.VITE_API_URL;
+  const AI_SERVICE_URL = "https://job-sniff-ai-service.onrender.com";
 
   const handleSingleFileUpload = async (file) => {
     if (!file) return;
