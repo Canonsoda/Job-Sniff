@@ -45,7 +45,8 @@ def call_model(doc_text):
 
 def repair_json(json_draft):
     try:
-        json_output = json_draft.model_dump_json(indent=2)
+        # For pydantic v1.8.2, use .dict() instead of .model_dump()
+        json_output = json.dumps(json_draft.dict(), indent=2)
         print("done.")
     except Exception as e:
         print(f"An error occurred: {e}")
