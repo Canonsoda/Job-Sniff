@@ -16,6 +16,6 @@ export default defineConfig({
   preview: {
     port: process.env.PORT || 10000,
     host: '0.0.0.0',
-    allowedHosts: 'all,job-sniff.onrender.com'
+    allowedHosts: ['job-sniff.onrender.com', 'localhost', '127.0.0.1', '0.0.0.0']
   }
 })
