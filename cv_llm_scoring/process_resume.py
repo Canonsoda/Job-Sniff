@@ -36,7 +36,7 @@ def call_model(doc_text):
 
     prompt = PromptTemplate(
         template=prompt_template,
-        input_variables=["resume_text"],
+        input_variables=["doc_text"],
         partial_variables={"format_instructions": parser.get_format_instructions()},
     )
     chain = prompt | llm | parser
