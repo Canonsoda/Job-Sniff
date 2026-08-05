@@ -42,9 +42,12 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(passport.initialize());
 
+// Kept deliberately cheap - no database or Elasticsearch calls - so uptime
+// monitors and platform health checks never fail on a slow dependency.
 app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
+  res.json({
+    status: 'OK',
+    service: 'JobSniff Backend',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     environment: process.env.NODE_ENV || 'development'
@@ -88,12 +91,42 @@ process.on('SIGINT', () => {
 
 const PORT = process.env.PORT || 5000;
 
+/**
+ * The CV parsing service sleeps independently of this one. If it is cold when
+ * a resume is uploaded, the user waits for its start-up on top of the ~40-60s
+ * parse. Pinging its health endpoint keeps it warm while this server is awake.
+ *
+ * Set KEEPALIVE_INTERVAL_MS=0 to disable.
+ */
+const startCvServiceKeepAlive = () => {
+  const cvUrl = process.env.CV_LLM_URL;
+  const interval = process.env.KEEPALIVE_INTERVAL_MS === undefined
+    ? 10 * 60 * 1000
+    : Number(process.env.KEEPALIVE_INTERVAL_MS);
+
+  if (!cvUrl || !interval) return;
+
+  const ping = async () => {
+    try {
+      await fetch(`${cvUrl}/health`, { signal: AbortSignal.timeout(15000) });
+    } catch (err) {
+      // A sleeping service is expected to time out on the first ping
+      console.log(`Keep-alive ping to CV service failed: ${err.message}`);
+    }
+  };
+
+  ping(); // warm it immediately on boot
+  setInterval(ping, interval).unref();
+  console.log(`💤 Keep-alive: pinging ${cvUrl}/health every ${interval / 60000} min`);
+};
+
 const startServer = async () => {
   try {
     await connectDB();
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`📊 Health check: http://localhost:${PORT}/health`);
+      startCvServiceKeepAlive();
     });
   } catch (error) {
     console.error('Failed to start server:', error);

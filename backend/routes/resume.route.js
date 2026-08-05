@@ -2,9 +2,8 @@ import express from "express";
 import multer from "multer";
 import fs from "fs";
 import path from "path";
-import { uploadResume, uploadMultipleResumes, searchResumes,shortListed,downloadResume,getDashboardStats,cleanupDuplicates,clearAllResumes } from "../controller/resume.controller.js";
+import { uploadResume, uploadMultipleResumes, searchResumes,shortListed,updateShortlist,downloadResume,getDashboardStats,cleanupDuplicates,clearAllResumes } from "../controller/resume.controller.js";
 import authMiddleware from "../middleware/auth.middleware.js";
-import Resume from "../models/resume.model.js";
 
 
 const resumeRoute = express.Router();
@@ -12,9 +11,17 @@ const resumeRoute = express.Router();
 const UPLOAD_DIR = path.join(process.cwd(), "uploads");
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR);
 
+// originalname comes from the client, so strip any directory components and
+// unusual characters before it reaches the filesystem.
+const safeFileName = (originalName) => {
+  const base = path.basename(originalName).replace(/[\\/]/g, "");
+  const cleaned = base.replace(/[^\w.\-() ]/g, "_").slice(-120);
+  return cleaned || "resume.pdf";
+};
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, UPLOAD_DIR),
-  filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
+  filename: (req, file, cb) => cb(null, `${Date.now()}-${safeFileName(file.originalname)}`),
 });
 const upload = multer({ 
   storage,
@@ -67,26 +74,7 @@ resumeRoute.get("/shortlisted",authMiddleware,shortListed)
 resumeRoute.get("/dashboard-stats",authMiddleware,getDashboardStats)
 resumeRoute.post("/cleanup-duplicates",authMiddleware,cleanupDuplicates)
 resumeRoute.delete("/clear-all",authMiddleware,clearAllResumes)
-resumeRoute.patch("/:id/shortlist", authMiddleware, async (req, res) => {
-  const { id } = req.params;
-  const { shortlisted } = req.body;
-
-  try {
-    const resume = await Resume.findOneAndUpdate(
-      { _id: id, user: req.user.id },
-      { "extractedData.shortlisted": shortlisted },
-      { new: true }
-    );
-
-    if (!resume) {
-      return res.status(404).json({ message: "Resume not found" });
-    }
-
-    res.json({ message: "Shortlist status updated", resume });
-  } catch (err) {
-    res.status(500).json({ message: "Failed to update shortlist", error: err.message });
-  }
-});
+resumeRoute.patch("/:id/shortlist", authMiddleware, updateShortlist);
 
 resumeRoute.get("/:id/download", authMiddleware, downloadResume)
 
