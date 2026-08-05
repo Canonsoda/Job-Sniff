@@ -32,6 +32,9 @@ const resumeSchema = new mongoose.Schema({
     ],
   },
   originalFileName: String,
+  // Name on disk in uploads/ (multer prefixes a timestamp), which is what
+  // downloads must read. originalFileName is only for display and Content-Disposition.
+  storedFileName: String,
   uploadDate: {
     type: Date,
     default: Date.now,

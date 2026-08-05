@@ -2,10 +2,34 @@ import fs from "fs";
 import axios from "axios";
 import FormData from "form-data";
 import Resume from "../models/resume.model.js";
-// import elasticClient from "../config/elasticSearch.js"; // Removed - using Meilisearch now
 import path from "path";
-import meiliClient from "../config/meiliSearch.js";
+import elasticClient, {
+  RESUME_INDEX,
+  ensureResumeIndex,
+  buildResumeDocument,
+} from "../config/elasticSearch.js";
+import {
+  persistUpload,
+  openDownload,
+  deleteStored,
+  discardUpload,
+} from "../config/storage.js";
 
+// A single parse takes ~40-55s, and the CV LLM service retries up to 3 times
+// on rate limits, so the old 30s timeout cut off nearly every upload.
+const CV_LLM_TIMEOUT_MS = Number(process.env.CV_LLM_TIMEOUT_MS) || 180000;
+
+// The CV LLM service returns a JSON object, but older builds double-encoded it
+// as a JSON string. Accept either shape.
+const normalizeCvResponse = (data) => {
+  const parsed = typeof data === "string" ? JSON.parse(data) : data;
+  const extractedData = parsed?.extractedData || parsed;
+
+  if (!extractedData || typeof extractedData !== "object") {
+    throw new Error("CV LLM service returned an unexpected payload");
+  }
+  return extractedData;
+};
 
 export const uploadResume = async (req, res) => {
   try {
@@ -19,62 +43,32 @@ export const uploadResume = async (req, res) => {
     const CV_LLM_URL = process.env.CV_LLM_URL || "http://127.0.0.1:5001";
     const response = await axios.post(`${CV_LLM_URL}/parse-resume`, formData, {
       headers: formData.getHeaders(),
-      timeout: 30000, // 30 seconds timeout
+      timeout: CV_LLM_TIMEOUT_MS,
     });
 
-    const cvResponse = JSON.parse(response.data);
-    
-    // Extract the actual data from the CV LLM response structure
-    const extractedData = cvResponse.extractedData || cvResponse;
+    const extractedData = normalizeCvResponse(response.data);
+
+    // Move the PDF into permanent storage (local disk or S3) now that parsing
+    // succeeded, and keep the returned key on the record for downloads.
+    const storageKey = await persistUpload(req.file);
 
     const resume = new Resume({
       user: req.user.id,
       originalFileName: req.file.originalname,
+      storedFileName: storageKey,
       extractedData,
     });
 
     await resume.save();
 
-    // await elasticClient.index({
-    //   index: 'resumes',
-    //   id: resume._id.toString(),
-    //   document: {
-    //     userId: req.user.id,
-    //     name: extractedData.name,
-    //     email: extractedData.email,
-    //     phone: extractedData.phone,
-    //     cgpa: extractedData.cgpa,
-    //     skills: extractedData.skills ? extractedData.skills.join(', ') : '',
-    //     education: extractedData.education || [],
-    //     workExperience: extractedData.workExperience || []
-    //   },
-    // });
-    try {
-      await meiliClient.createIndex('resumes', { primaryKey: 'id' });
-    } catch (error) {
-      // Index already exists, ignore error
-    }
- 
-    // Add to Meilisearch index
-    const index = meiliClient.index('resumes');
-    await index.addDocuments([{
+    // Add to the Elasticsearch index
+    await ensureResumeIndex();
+    await elasticClient.index({
+      index: RESUME_INDEX,
       id: resume._id.toString(),
-      userId: req.user.id,
-      name: extractedData.name,
-      email: extractedData.email,
-      phone: extractedData.phone,
-      cgpa: extractedData.cgpa,
-      skills: extractedData.skills ? extractedData.skills.join(', ') : '',
-      education: extractedData.education || [],
-      workExperience: extractedData.workExperience || []
-    }]);
-
-    // Keep the PDF file for download purposes
-    // Only clean up if we want to save storage (uncomment below)
-    // if (fs.existsSync(req.file.path)) {
-    //   fs.unlinkSync(req.file.path);
-    //   console.log('Backend file cleaned up:', req.file.path);
-    // }
+      document: buildResumeDocument(req.user.id, extractedData),
+      refresh: 'wait_for',
+    });
 
     res.status(201).json({
       message: "Resume uploaded and processed",
@@ -82,6 +76,9 @@ export const uploadResume = async (req, res) => {
       extractedData,
     });
   } catch (err) {
+    console.error("Resume upload failed:", err);
+    // Nothing was saved, so don't leave the uploaded file behind
+    await discardUpload(req.file);
     res.status(500).json({ message: "Resume parsing failed", error: err.message });
   }
 };
@@ -103,39 +100,30 @@ export const uploadMultipleResumes = async (req, res) => {
 
         const response = await axios.post(`${CV_LLM_URL}/parse-resume`, formData, {
           headers: formData.getHeaders(),
-          timeout: 30000,
+          timeout: CV_LLM_TIMEOUT_MS,
         });
 
-        const cvResponse = JSON.parse(response.data);
-        const extractedData = cvResponse.extractedData || cvResponse;
+        const extractedData = normalizeCvResponse(response.data);
+
+        const storageKey = await persistUpload(file);
 
         const resume = new Resume({
           user: req.user.id,
           originalFileName: file.originalname,
+          storedFileName: storageKey,
           extractedData,
         });
 
         await resume.save();
 
-        // Add to Meilisearch index
-        try {
-          await meiliClient.createIndex('resumes', { primaryKey: 'id' });
-        } catch (error) {
-          // Index already exists, ignore error
-        }
-
-        const index = meiliClient.index('resumes');
-        await index.addDocuments([{
+        // Add to the Elasticsearch index
+        await ensureResumeIndex();
+        await elasticClient.index({
+          index: RESUME_INDEX,
           id: resume._id.toString(),
-          userId: req.user.id,
-          name: extractedData.name,
-          email: extractedData.email,
-          phone: extractedData.phone,
-          cgpa: extractedData.cgpa,
-          skills: extractedData.skills ? extractedData.skills.join(', ') : '',
-          education: extractedData.education || [],
-          workExperience: extractedData.workExperience || []
-        }]);
+          document: buildResumeDocument(req.user.id, extractedData),
+          refresh: 'wait_for',
+        });
 
         results.push({
           fileName: file.originalname,
@@ -144,6 +132,7 @@ export const uploadMultipleResumes = async (req, res) => {
         });
 
       } catch (error) {
+        await discardUpload(file);
         errors.push({
           fileName: file.originalname,
           success: false,
@@ -176,36 +165,96 @@ export const searchResumes = async (req, res) => {
   }
 
   try {
-    const index = meiliClient.index('resumes');
-    
-    let searchParams = {};
-    if (query) {
-      searchParams.q = query;
-    }
-    
-    // For HR users: search all resumes
-    // For applicants: search only their resumes
+    // For HR users: search all resumes. For applicants: only their own.
+    const filter = [];
     if (req.user.role === 'applicant') {
-      searchParams.filter = [`userId = ${req.user.id}`];
-    }
-    
-    if (minCgpa || maxCgpa) {
-      if (!searchParams.filter) searchParams.filter = [];
-      if (minCgpa) searchParams.filter.push(`cgpa >= ${minCgpa}`);
-      if (maxCgpa) searchParams.filter.push(`cgpa <= ${maxCgpa}`);
+      filter.push({ term: { userId: req.user.id } });
     }
 
-    const result = await index.search(query || '', searchParams);
+    if (minCgpa || maxCgpa) {
+      const range = {};
+      if (minCgpa) range.gte = parseFloat(minCgpa);
+      if (maxCgpa) range.lte = parseFloat(maxCgpa);
+      filter.push({ range: { cgpaValue: range } });
+    }
+
+    const must = query
+      ? [{
+          multi_match: {
+            query,
+            fields: [
+              'name^3',
+              'skills^2',
+              'email',
+              'education.level',
+              'education.institution',
+              'education.board',
+              'workExperience.position',
+              'workExperience.company',
+              'workExperience.description',
+            ],
+            fuzziness: 'AUTO',
+          },
+        }]
+      : [{ match_all: {} }];
+
+    const result = await elasticClient.search({
+      index: RESUME_INDEX,
+      size: 100,
+      query: { bool: { must, filter } },
+    });
 
     res.json({
-      results: result.hits.map(hit => ({
-        id: hit.id,
-        ...hit
+      results: result.hits.hits.map(hit => ({
+        id: hit._id,
+        ...hit._source
       }))
     });
 
   } catch (err) {
+    // Nothing has been indexed yet — an empty result set is the honest answer
+    if (err?.meta?.statusCode === 404) {
+      return res.json({ results: [] });
+    }
     res.status(500).json({ error: err.message });
+  }
+};
+
+export const updateShortlist = async (req, res) => {
+  const { id } = req.params;
+  const shortlisted = req.body.shortlisted === true;
+
+  try {
+    // HR can shortlist any resume; applicants only their own
+    const filter = { _id: id };
+    if (req.user.role === 'applicant') filter.user = req.user.id;
+
+    const resume = await Resume.findOneAndUpdate(
+      filter,
+      { "extractedData.shortlisted": shortlisted },
+      { new: true }
+    );
+
+    if (!resume) {
+      return res.status(404).json({ message: "Resume not found" });
+    }
+
+    // Keep the search index in step, otherwise the Search page star is stale
+    try {
+      await elasticClient.update({
+        index: RESUME_INDEX,
+        id: resume._id.toString(),
+        doc: { shortlisted },
+        refresh: 'wait_for',
+      });
+    } catch (esError) {
+      console.error('Failed to sync shortlist to search index:', esError.message);
+    }
+
+    res.json({ message: "Shortlist status updated", resume });
+  } catch (err) {
+    console.error('Failed to update shortlist:', err);
+    res.status(500).json({ message: "Failed to update shortlist", error: err.message });
   }
 };
 
@@ -230,19 +279,32 @@ export const downloadResume = async (req, res) => {
     const resume = await Resume.findById(req.params.id);
     if (!resume) return res.status(404).json({ message: "Resume not found" });
 
-    // Check if user owns this resume
-    if (resume.user.toString() !== req.user.id) {
+    // HR users can download any resume; applicants only their own
+    if (req.user.role === "applicant" && resume.user.toString() !== req.user.id) {
       return res.status(403).json({ message: "Access denied" });
     }
 
-    const filePath = path.join(process.cwd(), "uploads", resume.originalFileName);
-
-    if (!fs.existsSync(filePath)) {
+    const file = await openDownload(resume.storedFileName);
+    if (!file) {
       return res.status(404).json({ message: "File not found" });
     }
 
-    res.download(filePath, resume.originalFileName);
+    const downloadName = resume.originalFileName || path.basename(resume.storedFileName);
+    res.setHeader("Content-Type", file.contentType);
+    if (file.contentLength) res.setHeader("Content-Length", file.contentLength);
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${downloadName.replace(/"/g, "")}"`
+    );
+
+    file.stream.on("error", (err) => {
+      console.error("Resume stream failed:", err);
+      if (!res.headersSent) res.status(500).end();
+      else res.destroy();
+    });
+    file.stream.pipe(res);
   } catch (err) {
+    console.error("Resume download failed:", err);
     res.status(500).json({ message: "Download failed", error: err.message });
   }
 };
@@ -383,13 +445,35 @@ export const cleanupDuplicates = async (req, res) => {
     
     // Delete duplicates
     let deletedCount = 0;
+    let filesRemoved = 0;
     for (const duplicate of duplicates) {
+      // Collect storage keys before the records are gone, otherwise the files
+      // are stranded with nothing left pointing at them.
+      const doomed = await Resume.find({ _id: { $in: duplicate.delete } }).select('storedFileName');
+      const keys = doomed.map((r) => r.storedFileName).filter(Boolean);
+
       await Resume.deleteMany({ _id: { $in: duplicate.delete } });
       deletedCount += duplicate.delete.length;
+
+      // Keep the search index in step with MongoDB
+      try {
+        await elasticClient.deleteByQuery({
+          index: RESUME_INDEX,
+          query: { ids: { values: duplicate.delete.map(id => id.toString()) } },
+          refresh: true,
+        });
+      } catch (esError) {
+        if (esError?.meta?.statusCode !== 404) {
+          console.error('Failed to remove duplicates from search index:', esError.message);
+        }
+      }
+
+      filesRemoved += await deleteStored(keys);
     }
     
     res.json({
       message: `Cleaned up ${deletedCount} duplicate resumes`,
+      filesRemoved,
       duplicates: duplicates.map(d => ({
         email: d.email,
         kept: d.keep,
@@ -412,22 +496,34 @@ export const clearAllResumes = async (req, res) => {
       query.user = req.user.id;
     }
     
+    // Capture storage keys before deleting, so the files can be reclaimed too
+    const doomed = await Resume.find(query).select('storedFileName');
+    const keys = doomed.map((r) => r.storedFileName).filter(Boolean);
+
     // Delete all resumes for this user from MongoDB
     const result = await Resume.deleteMany(query);
     
-    // Clear Meilisearch index for this user
+    // Clear the same set of documents from the Elasticsearch index
     try {
-      const index = meiliClient.index('resumes');
-      // Note: This will clear the entire index, affecting all users
-      // For production, you'd want to filter by userId
-      await index.deleteAllDocuments();
-    } catch (meiliError) {
-      console.log('Meilisearch clear error (might be empty):', meiliError.message);
+      await elasticClient.deleteByQuery({
+        index: RESUME_INDEX,
+        query: req.user.role === 'applicant'
+          ? { term: { userId: req.user.id } }
+          : { match_all: {} },
+        refresh: true,
+      });
+    } catch (esError) {
+      if (esError?.meta?.statusCode !== 404) {
+        console.log('Elasticsearch clear error (might be empty):', esError.message);
+      }
     }
     
+    const filesRemoved = await deleteStored(keys);
+
     res.json({
       message: `Cleared ${result.deletedCount} resumes from database`,
-      deletedCount: result.deletedCount
+      deletedCount: result.deletedCount,
+      filesRemoved
     });
     
   } catch (err) {
