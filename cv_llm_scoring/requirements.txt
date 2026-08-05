@@ -1,6 +1,6 @@
 # Pinned to the versions running locally so deploys reproduce the same env.
-# Werkzeug is pulled in (and version-bounded) by Flask; pydantic is no longer
-# used now that the langchain/PydanticOutputParser flow is gone.
+# Werkzeug is pulled in (and version-bounded) by Flask; pydantic and the
+# langchain/PyPDF2 stack are gone now that parsing goes through OpenRouter.
 Flask==3.1.1
 pypdf==5.8.0
 python-dotenv==1.1.1
