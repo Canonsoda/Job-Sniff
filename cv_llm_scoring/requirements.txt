@@ -1,10 +1,7 @@
-Flask==3.0.0
-numpy==1.26.2
-langchain==0.0.312
-langchain-google-genai==0.0.6
-PyPDF2==3.0.1
-pydantic==1.10.13
-python-dotenv==1.0.0
-requests==2.31.0
-Werkzeug==3.0.0
-pypdf
+# Pinned to the versions running locally so deploys reproduce the same env.
+# Werkzeug is pulled in (and version-bounded) by Flask; pydantic and the
+# langchain/PyPDF2 stack are gone now that parsing goes through OpenRouter.
+Flask==3.1.1
+pypdf==5.8.0
+python-dotenv==1.1.1
+requests==2.34.2
