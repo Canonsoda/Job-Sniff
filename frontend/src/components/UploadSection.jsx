@@ -1,114 +1,131 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 
+const MAX_FILE_MB = 5;
+const MAX_FILES = 10;
+
+// Pull the real reason out of the API response instead of showing
+// "Upload failed!" for everything - the backend reports rate limits,
+// timeouts and parse failures by name.
+const errorMessage = (err, fallback) =>
+  err?.response?.data?.error || err?.response?.data?.message || err?.message || fallback;
+
 const UploadSection = ({ onUploadComplete, onRefresh }) => {
   const [dragOver, setDragOver] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  // 'idle' -> 'uploading' (real %) -> 'analyzing' (indeterminate, LLM is working)
+  const [phase, setPhase] = useState("idle");
   const [progress, setProgress] = useState(0);
-  const [uploadMode, setUploadMode] = useState('single'); // 'single' or 'multiple'
+  const [elapsed, setElapsed] = useState(0);
+  const [pendingFiles, setPendingFiles] = useState([]);
+  const [uploadMode, setUploadMode] = useState("single");
   const { user } = useAuth();
   const isHR = user?.role === "hr";
+  const inputRef = useRef(null);
 
   const API_URL = import.meta.env.VITE_API_URL;
-  const AI_SERVICE_URL = "https://job-sniff-ai-service.onrender.com";
+  const busy = phase !== "idle";
 
-  const handleSingleFileUpload = async (file) => {
-    if (!file) return;
-    if (file.type !== "application/pdf") {
-      toast.error("Only PDF files are allowed.");
-      return;
-    }
+  // Parsing takes tens of seconds. A ticking counter reads as "working",
+  // where a bar stuck at 100% reads as "frozen".
+  useEffect(() => {
+    if (phase !== "analyzing") return;
+    const startedAt = Date.now();
+    setElapsed(0);
+    const id = setInterval(() => setElapsed(Math.round((Date.now() - startedAt) / 1000)), 1000);
+    return () => clearInterval(id);
+  }, [phase]);
 
-    setUploading(true);
-    const formData = new FormData();
-    formData.append("resume", file);
-
-    try {
-      const token = localStorage.getItem("token");
-      await axios.post(`${API_URL}/resume/upload`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
-        onUploadProgress: (e) => {
-          const percent = Math.round((e.loaded * 100) / e.total);
-          setProgress(percent);
-        },
-      });
-
-      toast.success("Resume uploaded successfully!");
-      onUploadComplete?.();
-      onRefresh?.();
-    } catch (err) {
-      toast.error("Upload failed!");
-    } finally {
-      setUploading(false);
-      setProgress(0);
-    }
+  const reset = () => {
+    setPhase("idle");
+    setProgress(0);
+    setElapsed(0);
+    setPendingFiles([]);
+    if (inputRef.current) inputRef.current.value = "";
   };
 
-  const handleMultipleFileUpload = async (files) => {
-    if (!files || files.length === 0) return;
-    
-    // Validate all files
+  /** Reject non-PDFs and oversized files before spending a round trip on them. */
+  const validate = (files) => {
     for (const file of files) {
       if (file.type !== "application/pdf") {
-        toast.error(`${file.name} is not a PDF file.`);
-        return;
+        toast.error(`${file.name} is not a PDF.`);
+        return false;
+      }
+      if (file.size > MAX_FILE_MB * 1024 * 1024) {
+        toast.error(
+          `${file.name} is ${(file.size / 1024 / 1024).toFixed(1)} MB - the limit is ${MAX_FILE_MB} MB.`
+        );
+        return false;
       }
     }
+    return true;
+  };
 
-    setUploading(true);
+  const postFiles = async (files, { multiple }) => {
     const formData = new FormData();
-    
-    for (const file of files) {
-      formData.append("resumes", file);
+    files.forEach((file) => formData.append(multiple ? "resumes" : "resume", file));
+
+    const token = localStorage.getItem("token");
+    return axios.post(`${API_URL}/resume/upload${multiple ? "-multiple" : ""}`, formData, {
+      headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${token}` },
+      onUploadProgress: (e) => {
+        const percent = e.total ? Math.round((e.loaded * 100) / e.total) : 0;
+        setProgress(percent);
+        // Bytes are on the wire in well under a second; everything after this
+        // is the AI service parsing, which upload progress cannot measure.
+        if (percent >= 100) setPhase("analyzing");
+      },
+    });
+  };
+
+  const handleUpload = async (fileList) => {
+    const files = Array.from(fileList || []);
+    if (files.length === 0) return;
+
+    const multiple = uploadMode === "multiple";
+    if (multiple && files.length > MAX_FILES) {
+      toast.error(`Select at most ${MAX_FILES} files (you chose ${files.length}).`);
+      return;
     }
+    if (!validate(files)) return;
+
+    setPendingFiles(files.map((f) => ({ name: f.name, size: f.size })));
+    setPhase("uploading");
+    setProgress(0);
 
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.post(`${API_URL}/resume/upload-multiple`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
-        onUploadProgress: (e) => {
-          const percent = Math.round((e.loaded * 100) / e.total);
-          setProgress(percent);
-        },
-      });
+      const res = await postFiles(files, { multiple });
 
-      const { summary } = response.data;
-      toast.success(`${summary.successful} out of ${summary.total} resumes uploaded successfully!`);
-      
-      if (summary.failed > 0) {
-        toast.error(`${summary.failed} files failed to upload.`);
+      if (multiple) {
+        const { summary } = res.data;
+        if (summary.successful > 0) {
+          toast.success(`Processed ${summary.successful} of ${summary.total} resumes.`);
+        }
+        (res.data.errors || []).forEach((e) =>
+          toast.error(`${e.fileName}: ${e.error}`, { duration: 6000 })
+        );
+      } else {
+        toast.success(`Added ${res.data.extractedData?.name || files[0].name}.`);
       }
-      
+
       onUploadComplete?.();
       onRefresh?.();
     } catch (err) {
-      toast.error("Multiple upload failed!");
+      toast.error(errorMessage(err, "Upload failed."), { duration: 7000 });
     } finally {
-      setUploading(false);
-      setProgress(0);
+      reset();
     }
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
     setDragOver(false);
-    const files = Array.from(e.dataTransfer.files);
-    
-    if (uploadMode === 'single') {
-      handleSingleFileUpload(files[0]);
-    } else {
-      handleMultipleFileUpload(files);
-    }
+    if (!busy) handleUpload(e.dataTransfer.files);
   };
+
+  const totalMb = (pendingFiles.reduce((sum, f) => sum + f.size, 0) / 1024 / 1024).toFixed(1);
 
   return (
     <motion.div
@@ -117,12 +134,12 @@ const UploadSection = ({ onUploadComplete, onRefresh }) => {
       transition={{ delay: 0.2 }}
       onDragOver={(e) => {
         e.preventDefault();
-        setDragOver(true);
+        if (!busy) setDragOver(true);
       }}
       onDragLeave={() => setDragOver(false)}
       onDrop={handleDrop}
-      className={`p-6 mb-6 rounded-2xl border border-white/10 shadow-xl backdrop-blur-md transition-all text-center cursor-pointer ${
-        dragOver ? "bg-white/10" : "bg-white/5"
+      className={`p-6 mb-6 rounded-2xl border shadow-xl backdrop-blur-md transition-all text-center ${
+        dragOver ? "bg-teal-400/10 border-teal-400/50" : "bg-white/5 border-white/10"
       }`}
     >
       <h2 className="text-xl font-semibold text-white mb-1">
@@ -134,63 +151,102 @@ const UploadSection = ({ onUploadComplete, onRefresh }) => {
           : "Upload your resume to be reviewed by recruiters."}
       </p>
 
-      {/* Upload Mode Toggle */}
       {isHR && (
         <div className="flex justify-center gap-2 mt-4">
-          <button
-            onClick={() => setUploadMode('single')}
-            className={`px-3 py-1 rounded-full text-sm transition ${
-              uploadMode === 'single'
-                ? 'bg-teal-500 text-white'
-                : 'bg-white/10 text-gray-300 hover:bg-white/20'
-            }`}
-          >
-            Single File
-          </button>
-          <button
-            onClick={() => setUploadMode('multiple')}
-            className={`px-3 py-1 rounded-full text-sm transition ${
-              uploadMode === 'multiple'
-                ? 'bg-teal-500 text-white'
-                : 'bg-white/10 text-gray-300 hover:bg-white/20'
-            }`}
-          >
-            Multiple Files (Max 10)
-          </button>
+          {[
+            { mode: "single", label: "Single File" },
+            { mode: "multiple", label: `Multiple Files (Max ${MAX_FILES})` },
+          ].map(({ mode, label }) => (
+            <button
+              key={mode}
+              type="button"
+              disabled={busy}
+              onClick={() => setUploadMode(mode)}
+              className={`px-3 py-1 rounded-full text-sm transition disabled:opacity-50 ${
+                uploadMode === mode
+                  ? "bg-teal-500 text-white"
+                  : "bg-white/10 text-gray-300 hover:bg-white/20"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
       )}
 
       <input
+        ref={inputRef}
         type="file"
         className="hidden"
         id="uploadInput"
         accept="application/pdf"
-        multiple={uploadMode === 'multiple'}
-        onChange={(e) => {
-          const files = Array.from(e.target.files);
-          if (uploadMode === 'single') {
-            handleSingleFileUpload(files[0]);
-          } else {
-            handleMultipleFileUpload(files);
-          }
-        }}
-        disabled={uploading}
+        multiple={uploadMode === "multiple"}
+        onChange={(e) => handleUpload(e.target.files)}
+        disabled={busy}
       />
+
+      {/* The whole zone is the click target, not just the small link below it */}
       <label
         htmlFor="uploadInput"
-        className={`block mt-4 text-sm transition ${
-          uploading ? "text-gray-500 cursor-not-allowed" : "text-teal-400 hover:underline"
+        className={`mt-4 block rounded-xl border border-dashed px-4 py-8 transition ${
+          busy
+            ? "border-white/10 cursor-not-allowed"
+            : "border-white/25 hover:border-teal-400/60 hover:bg-white/5 cursor-pointer"
         }`}
       >
-        {uploading ? "Uploading..." : `Choose ${uploadMode === 'single' ? 'File' : 'Files'}`}
+        {busy ? (
+          <span className="text-sm text-gray-400">
+            {phase === "uploading" ? "Sending file…" : "Please wait…"}
+          </span>
+        ) : (
+          <>
+            <span className="block text-teal-400 text-sm font-medium">
+              Choose {uploadMode === "single" ? "a PDF" : "PDFs"}
+            </span>
+            <span className="block text-xs text-gray-500 mt-1">
+              or drag and drop here · PDF only · up to {MAX_FILE_MB} MB each
+            </span>
+          </>
+        )}
       </label>
 
-      {uploading && (
-        <div className="w-full bg-white/10 rounded-full h-2 mt-4">
-          <div
-            className="bg-teal-400 h-2 rounded-full transition-all"
-            style={{ width: `${progress}%` }}
-          />
+      {pendingFiles.length > 0 && (
+        <p className="mt-3 text-xs text-gray-400 truncate">
+          {pendingFiles.length === 1
+            ? pendingFiles[0].name
+            : `${pendingFiles.length} files`}{" "}
+          · {totalMb} MB
+        </p>
+      )}
+
+      {busy && (
+        <div className="mt-4">
+          {phase === "uploading" ? (
+            <>
+              <div className="w-full bg-white/10 rounded-full h-2">
+                <div
+                  className="bg-teal-400 h-2 rounded-full transition-all"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <p className="mt-2 text-xs text-gray-400">Uploading… {progress}%</p>
+            </>
+          ) : (
+            <>
+              {/* Indeterminate: the server is parsing and cannot report progress */}
+              <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
+                <div className="h-2 w-1/3 rounded-full bg-teal-400 animate-[pulse_1.2s_ease-in-out_infinite]" />
+              </div>
+              <p className="mt-2 text-xs text-gray-300">
+                Analyzing with AI… {elapsed}s
+              </p>
+              <p className="text-[11px] text-gray-500">
+                {pendingFiles.length > 1
+                  ? `Resumes are parsed one at a time — around 10-40s each.`
+                  : `This usually takes 10-40 seconds. Keep this tab open.`}
+              </p>
+            </>
+          )}
         </div>
       )}
     </motion.div>
