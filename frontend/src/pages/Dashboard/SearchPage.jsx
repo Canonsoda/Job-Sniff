@@ -12,6 +12,8 @@ const Searches = () => {
   const [maxCgpa, setMaxCgpa] = useState(10);
   const [selectedSkills, setSelectedSkills] = useState([]);
   const [sortOrder, setSortOrder] = useState("desc");
+  const [isSearching, setIsSearching] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(true);
 
@@ -35,6 +37,8 @@ const Searches = () => {
 
   const handleSearch = async () => {
     if (!query.trim()) return toast.error("Please enter a search query.");
+    setIsSearching(true);
+    setHasSearched(true);
     try {
       const token = sessionStorage.getItem("token");
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/resume/search`, {
@@ -44,7 +48,9 @@ const Searches = () => {
       const data = res.data.results || [];
       setResults(data);
     } catch (err) {
-      toast.error("Search failed");
+      toast.error(err.response?.data?.error || "Search failed");
+    } finally {
+      setIsSearching(false);
     }
   };
 
@@ -62,11 +68,15 @@ const Searches = () => {
       const cgpaNum = parseFloat(res.cgpa);
       const cgpaOk = cgpaNum >= minCgpa && cgpaNum <= maxCgpa;
 
+      // Compare whole skills, not substrings - "Java" must not match "JavaScript"
+      const resSkills = (res.skills || "")
+        .split(",")
+        .map((s) => s.trim().toLowerCase())
+        .filter(Boolean);
+
       const skillOk =
         selectedSkills.length === 0 ||
-        selectedSkills.every((skill) =>
-          res.skills?.toLowerCase().includes(skill.toLowerCase())
-        );
+        selectedSkills.every((skill) => resSkills.includes(skill.trim().toLowerCase()));
 
       return cgpaOk && skillOk;
     });
@@ -153,9 +163,10 @@ const Searches = () => {
         />
         <button
           onClick={handleSearch}
-          className="px-5 py-2 bg-teal-600 hover:bg-teal-700 rounded-md text-white font-semibold"
+          disabled={isSearching}
+          className="px-5 py-2 bg-teal-600 hover:bg-teal-700 rounded-md text-white font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          Search
+          {isSearching ? "Searching…" : "Search"}
         </button>
       </div>
 
@@ -242,8 +253,25 @@ const Searches = () => {
         </div>
       </div>
 
+      {/* Result count, so a filtered-away result is distinguishable from no match */}
+      {hasSearched && !isSearching && (
+        <p className="text-sm text-gray-400">
+          {filtered.length} of {results.length} result{results.length === 1 ? "" : "s"}
+          {filtered.length !== results.length && " shown after filters"}
+        </p>
+      )}
+
       {/* Results */}
-      {filtered.length > 0 ? (
+      {isSearching ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {[0, 1].map((i) => (
+            <div
+              key={i}
+              className="h-40 rounded-xl bg-white/5 border border-white/10 animate-pulse"
+            />
+          ))}
+        </div>
+      ) : filtered.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {filtered.map((res, i) => (
             <motion.div
@@ -288,7 +316,11 @@ const Searches = () => {
         </div>
       ) : (
         <p className="text-center text-gray-400 text-lg mt-10">
-          No resumes match your filters. Try adjusting CGPA or skills.
+          {!hasSearched
+            ? "Search by skill, degree, or name to find candidates."
+            : results.length === 0
+            ? `No resumes matched "${query}".`
+            : "No resumes match your filters. Try adjusting CGPA or skills."}
         </p>
       )}
     </div>

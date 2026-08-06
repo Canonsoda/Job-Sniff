@@ -10,6 +10,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import UploadSection from "../../components/UploadSection";
+import { confirmAction } from "../../utils/confirmToast";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
@@ -95,50 +96,37 @@ const [suggestions, setSuggestions] = useState([]);
   };
 
   const handleCleanupDuplicates = async () => {
+    // Deletes resumes and their stored PDFs permanently, so ask first
+    const confirmed = await confirmAction({
+      title: "Remove duplicate resumes?",
+      message:
+        "Resumes sharing an email address are collapsed to the most recent one. The older copies and their PDF files are deleted permanently.",
+      confirmLabel: "Remove duplicates",
+    });
+    if (!confirmed) return;
+
     try {
       const token = sessionStorage.getItem("token");
       const res = await axios.post(`${import.meta.env.VITE_API_URL}/resume/cleanup-duplicates`, {}, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       toast.success(res.data.message);
       fetchDashboardStats(); // Refresh stats after cleanup
     } catch (err) {
-      toast.error("Failed to cleanup duplicates");
+      toast.error(err.response?.data?.error || err.response?.data?.message || "Failed to cleanup duplicates");
     }
   };
 
   const handleClearAll = async () => {
-    const confirmed = await new Promise((resolve) => {
-      toast((t) => (
-        <div className="flex flex-col gap-3">
-          <div className="text-white font-medium">Delete All Resumes?</div>
-          <div className="text-gray-300 text-sm">This action cannot be undone.</div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => {
-                toast.dismiss(t.id);
-                resolve(true);
-              }}
-              className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-sm"
-            >
-              Delete All
-            </button>
-            <button
-              onClick={() => {
-                toast.dismiss(t.id);
-                resolve(false);
-              }}
-              className="px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white rounded text-sm"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      ), {
-        duration: Infinity,
-        position: 'top-center',
-      });
+    // stats is the display array, so read the count off the matching card
+    const total = stats.find((s) => s.title === "Total Resumes")?.value ?? 0;
+    const confirmed = await confirmAction({
+      title: "Delete all resumes?",
+      message: `This permanently deletes ${total} resume${
+        total === 1 ? "" : "s"
+      } and their PDF files. This action cannot be undone.`,
+      confirmLabel: "Delete all",
     });
 
     if (!confirmed) return;
@@ -169,7 +157,7 @@ const [suggestions, setSuggestions] = useState([]);
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="text-4xl font-bold text-white tracking-tight"
+        className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white tracking-tight"
       >
         Welcome back, {user?.name?.split(" ")[0]} 👋
       </motion.h1>
@@ -184,7 +172,7 @@ const [suggestions, setSuggestions] = useState([]);
         </div>
         
         {isHR && (
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-2 sm:gap-3">
             <button
               onClick={handleRefresh}
               disabled={isLoading}
