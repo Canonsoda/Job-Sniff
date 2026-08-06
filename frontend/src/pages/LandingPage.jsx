@@ -6,7 +6,7 @@ import heroImg from "../assets/hero.png";
 
 const LandingPage = () => {
   const navigate = useNavigate();
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
 
   // Redirect logged-in users directly to dashboard
   useEffect(() => {

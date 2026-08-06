@@ -27,7 +27,7 @@ const UploadSection = ({ onUploadComplete, onRefresh }) => {
     formData.append("resume", file);
 
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       await axios.post(`${API_URL}/resume/upload`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
@@ -69,7 +69,7 @@ const UploadSection = ({ onUploadComplete, onRefresh }) => {
     }
 
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.post(`${API_URL}/resume/upload-multiple`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",

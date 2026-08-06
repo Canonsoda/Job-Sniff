@@ -14,7 +14,7 @@ const GoogleAuthSuccess = () => {
     const token = queryParams.get("token");
 
     if (token) {
-      localStorage.setItem("token", token);
+      sessionStorage.setItem("token", token);
 
       try {
         const decoded = jwtDecode(token);
@@ -24,7 +24,7 @@ const GoogleAuthSuccess = () => {
         const needsRole = !["hr", "applicant"].includes(decoded?.role);
 
         if (decoded?.isNewUser || needsRole) {
-          localStorage.setItem("isNewUser", "true");
+          sessionStorage.setItem("isNewUser", "true");
           navigate("/choose-role");
         } else {
           navigate("/dashboard");

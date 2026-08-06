@@ -14,13 +14,13 @@ const ChooseRole = () => {
   const API_BASE_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     if (!token) {
       navigate("/login");
       return;
     }
 
-    const isNewUser = localStorage.getItem("isNewUser") === "true";
+    const isNewUser = sessionStorage.getItem("isNewUser") === "true";
 
     // Anyone without a role still needs this page, even if they are not new -
     // otherwise a user who got past signup without choosing is bounced to the
@@ -43,7 +43,7 @@ const ChooseRole = () => {
 
   try {
     setSubmitting(true);
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
 
     const res = await axios.patch(
       `${API_BASE_URL}/auth/set-role`,
@@ -56,11 +56,11 @@ const ChooseRole = () => {
     // of the JWT, so failing to swap it leaves the user an applicant for the
     // whole token lifetime even though the database says otherwise.
     if (res.data?.token) {
-      localStorage.setItem("token", res.data.token);
+      sessionStorage.setItem("token", res.data.token);
       setUser(jwtDecode(res.data.token));
     }
 
-    localStorage.removeItem("isNewUser");
+    sessionStorage.removeItem("isNewUser");
     toast.success("Role selected!");
 
     if (selectedRole === "hr") {

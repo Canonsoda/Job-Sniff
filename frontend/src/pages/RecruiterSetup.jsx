@@ -30,7 +30,7 @@ const RecruiterSetup = () => {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const res = await axios.patch(
         `${API_BASE_URL}/auth/update-recruiter-details`,
         { recruiterDetails: formData },
@@ -38,7 +38,7 @@ const RecruiterSetup = () => {
       );
 
       // ✅ Save new token and update user context
-      localStorage.setItem("token", res.data.token);
+      sessionStorage.setItem("token", res.data.token);
       setUser(res.data.user);
 
       toast.success("Recruiter profile setup complete!");

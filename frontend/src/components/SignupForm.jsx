@@ -15,7 +15,7 @@ const SignupForm = () => {
   const API_BASE_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     if (token) navigate("/dashboard");
   }, [navigate]);
 
@@ -43,8 +43,8 @@ const SignupForm = () => {
         user: formData,
       });
 
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("isNewUser", "true");
+      sessionStorage.setItem("token", res.data.token);
+      sessionStorage.setItem("isNewUser", "true");
 
       toast.success("Signup successful!");
       navigate("/choose-role"); // 👈 Ask user their role here
