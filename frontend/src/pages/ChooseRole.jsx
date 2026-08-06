@@ -15,9 +15,25 @@ const ChooseRole = () => {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
     const isNewUser = localStorage.getItem("isNewUser") === "true";
 
-    if (!token || !isNewUser) {
+    // Anyone without a role still needs this page, even if they are not new -
+    // otherwise a user who got past signup without choosing is bounced to the
+    // dashboard forever with no way back here.
+    let needsRole = false;
+    try {
+      needsRole = !["hr", "applicant"].includes(jwtDecode(token)?.role);
+    } catch {
+      navigate("/login");
+      return;
+    }
+
+    if (!isNewUser && !needsRole) {
       navigate("/dashboard");
     }
   }, [navigate]);

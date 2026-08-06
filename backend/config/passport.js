@@ -17,7 +17,11 @@ passport.use(new GoogleStrategy(
     try {
       const state = JSON.parse(req.query.state || '{}');
       const inputRole = (state.role || '').toLowerCase();
-      const role = ['applicant', 'hr'].includes(inputRole) ? inputRole : 'applicant';
+      // Leave the role unset when the user has not actually chosen one. The
+      // Google buttons send no role, so defaulting to 'applicant' here was
+      // indistinguishable from a deliberate choice and left the user with no
+      // way to correct it. Null means "still needs to pick".
+      const role = ['applicant', 'hr'].includes(inputRole) ? inputRole : null;
 
       let user = await User.findOne({ emailId: profile.emails[0].value });
 
