@@ -10,7 +10,7 @@ const Shortlisted = () => {
 
   const fetchShortlisted = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/resume/shortlisted`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -24,7 +24,7 @@ const Shortlisted = () => {
 
   const unshortlist = async (id) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       await axios.patch(`${import.meta.env.VITE_API_URL}/resume/${id}/shortlist`, {
         shortlisted: false,
       }, {
@@ -96,7 +96,7 @@ const Shortlisted = () => {
               <button
                 onClick={async () => {
                   try {
-                    const token = localStorage.getItem("token");
+                    const token = sessionStorage.getItem("token");
                     const response = await axios.get(`${import.meta.env.VITE_API_URL}/resume/${res._id}/download`, {
                       headers: { Authorization: `Bearer ${token}` },
                       responseType: 'blob'

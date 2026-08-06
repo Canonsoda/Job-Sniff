@@ -27,7 +27,7 @@ const Upload = () => {
     formData.append("resume", file);
 
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const res = await axios.post(`${API_URL}/resume/upload`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",

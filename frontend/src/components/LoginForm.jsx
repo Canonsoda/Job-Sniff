@@ -10,7 +10,7 @@ const LoginForm = () => {
   const API_BASE_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     if (token) navigate("/dashboard");
   }, [navigate]);
 
@@ -28,8 +28,8 @@ const LoginForm = () => {
 
     try {
       const res = await axios.post(`${API_BASE_URL}/auth/login`, formData);
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("isNewUser", "true");
+      sessionStorage.setItem("token", res.data.token);
+      sessionStorage.setItem("isNewUser", "true");
       toast.success("Login successful!");
       navigate("/dashboard");
     } catch (err) {

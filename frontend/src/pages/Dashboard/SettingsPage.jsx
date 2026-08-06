@@ -49,7 +49,7 @@ const Settings = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       await axios.patch(`${import.meta.env.VITE_API_URL}/user/hr/settings`, formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -66,7 +66,7 @@ const Settings = () => {
 
     try {
       setSwitchingRole(true);
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const res = await axios.patch(
         `${import.meta.env.VITE_API_URL}/auth/set-role`,
         { role: nextRole },
@@ -74,7 +74,7 @@ const Settings = () => {
       );
 
       if (res.data?.token) {
-        localStorage.setItem("token", res.data.token);
+        sessionStorage.setItem("token", res.data.token);
         setUser(jwtDecode(res.data.token));
       }
       toast.success(`Switched to ${nextRole === "hr" ? "HR" : "Applicant"}`);

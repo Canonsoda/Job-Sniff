@@ -57,7 +57,7 @@ const [suggestions, setSuggestions] = useState([]);
   const fetchDashboardStats = async () => {
     setIsLoading(true);
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/resume/dashboard-stats`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -96,7 +96,7 @@ const [suggestions, setSuggestions] = useState([]);
 
   const handleCleanupDuplicates = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const res = await axios.post(`${import.meta.env.VITE_API_URL}/resume/cleanup-duplicates`, {}, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -144,7 +144,7 @@ const [suggestions, setSuggestions] = useState([]);
     if (!confirmed) return;
     
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const res = await axios.delete(`${import.meta.env.VITE_API_URL}/resume/clear-all`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -454,7 +454,7 @@ const [suggestions, setSuggestions] = useState([]);
               <button
                 onClick={async () => {
                   try {
-                    const token = localStorage.getItem("token");
+                    const token = sessionStorage.getItem("token");
                     const response = await axios.get(`${import.meta.env.VITE_API_URL}/resume/shortlisted`, {
                       headers: { Authorization: `Bearer ${token}` },
                     });

@@ -19,7 +19,7 @@ const Searches = () => {
   useEffect(() => {
     const fetchSuggestions = async () => {
       try {
-        const token = localStorage.getItem("token");
+        const token = sessionStorage.getItem("token");
         const res = await axios.get(`${import.meta.env.VITE_API_URL}/resume/dashboard-stats`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -36,7 +36,7 @@ const Searches = () => {
   const handleSearch = async () => {
     if (!query.trim()) return toast.error("Please enter a search query.");
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/resume/search`, {
         params: { query },
         headers: { Authorization: `Bearer ${token}` },
@@ -92,7 +92,7 @@ const Searches = () => {
 
   const toggleShortlist = async (id, newStatus, index) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
 
       setFiltered((prev) =>
         prev.map((res, i) =>

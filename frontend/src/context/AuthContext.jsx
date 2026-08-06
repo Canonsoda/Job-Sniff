@@ -10,7 +10,15 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    // The session used to live in localStorage, which survives closing the
+    // tab. It is sessionStorage now so the session ends with the tab, but a
+    // token left over from the old behaviour would otherwise sit there
+    // indefinitely - clear it.
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("isNewUser");
+
+    const token = sessionStorage.getItem("token");
     if (!token) return;
 
     try {
@@ -33,8 +41,9 @@ export const AuthProvider = ({ children }) => {
   }, [navigate]);
 
   const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("user");
+    sessionStorage.removeItem("isNewUser");
     setUser(null);
     navigate("/login");
   };
