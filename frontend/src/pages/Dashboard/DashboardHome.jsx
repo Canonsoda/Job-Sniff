@@ -151,26 +151,34 @@ const [suggestions, setSuggestions] = useState([]);
   return (
     <div className="space-y-10 relative z-10">
       {/* Welcome Message */}
-      <div className="flex items-center justify-between">
-        <div>
-      <motion.h1
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white tracking-tight"
-      >
-        Welcome back, {user?.name?.split(" ")[0]} 👋
-      </motion.h1>
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-        className="text-lg text-gray-400 mt-1"
-      >
-        {isHR ? "Here's your overview as a recruiter." : "Your resume status summary."}
-      </motion.p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0">
+          <motion.h1
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white tracking-tight"
+          >
+            Welcome back, {user?.name?.split(" ")[0]}
+          </motion.h1>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1"
+          >
+            {/* A role badge earns its place where a wave emoji did not - the
+                role decides what the whole dashboard shows */}
+            <span className="rounded-full border border-teal-500/30 bg-teal-500/15 px-2.5 py-0.5 text-xs font-medium text-teal-300">
+              {isHR ? "Recruiter" : "Applicant"}
+            </span>
+            <p className="text-sm sm:text-base text-gray-400">
+              {isHR ? "Here's your hiring overview." : "Your resume status summary."}
+            </p>
+          </motion.div>
         </div>
-        
+
         {isHR && (
           <div className="flex flex-wrap gap-2 sm:gap-3">
             <button
