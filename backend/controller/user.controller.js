@@ -79,7 +79,10 @@ export const loginUser = async(req,res) =>{
         if (!isPasswordValid) {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
-        const role = user.role || 'both'; // Default to 'both' if no role is set
+        // Least privilege: an unset role must not read as anything other than
+        // 'applicant'. The previous 'both' fallback was not 'applicant', so
+        // every `role === 'applicant'` guard let it through as HR.
+        const role = user.role === 'hr' ? 'hr' : 'applicant';
         // Generate JWT token
         const token = jwt.sign({
             id: user._id,

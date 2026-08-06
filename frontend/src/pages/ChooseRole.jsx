@@ -2,19 +2,38 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { jwtDecode } from "jwt-decode";
 import AuthLayout from "../components/AuthLayout";
+import { useAuth } from "../context/AuthContext";
 
 const ChooseRole = () => {
   const [selectedRole, setSelectedRole] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
+  const { setUser } = useAuth();
   const API_BASE_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
     const isNewUser = localStorage.getItem("isNewUser") === "true";
 
-    if (!token || !isNewUser) {
+    // Anyone without a role still needs this page, even if they are not new -
+    // otherwise a user who got past signup without choosing is bounced to the
+    // dashboard forever with no way back here.
+    let needsRole = false;
+    try {
+      needsRole = !["hr", "applicant"].includes(jwtDecode(token)?.role);
+    } catch {
+      navigate("/login");
+      return;
+    }
+
+    if (!isNewUser && !needsRole) {
       navigate("/dashboard");
     }
   }, [navigate]);
@@ -26,11 +45,20 @@ const ChooseRole = () => {
     setSubmitting(true);
     const token = localStorage.getItem("token");
 
-    await axios.patch(
+    const res = await axios.patch(
       `${API_BASE_URL}/auth/set-role`,
       { role: selectedRole },
       { headers: { Authorization: `Bearer ${token}` } }
     );
+
+    // set-role issues a new token carrying the chosen role. The old one still
+    // says "applicant", and both the UI and the API read the role straight out
+    // of the JWT, so failing to swap it leaves the user an applicant for the
+    // whole token lifetime even though the database says otherwise.
+    if (res.data?.token) {
+      localStorage.setItem("token", res.data.token);
+      setUser(jwtDecode(res.data.token));
+    }
 
     localStorage.removeItem("isNewUser");
     toast.success("Role selected!");

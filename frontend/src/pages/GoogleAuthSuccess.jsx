@@ -18,7 +18,12 @@ const GoogleAuthSuccess = () => {
 
       try {
         const decoded = jwtDecode(token);
-        if (decoded?.isNewUser) {
+        // Also prompt when the account has no role yet. Returning Google users
+        // are not "new", so without this check anyone who signed in before
+        // picking a role would go straight to the dashboard and stay stuck.
+        const needsRole = !["hr", "applicant"].includes(decoded?.role);
+
+        if (decoded?.isNewUser || needsRole) {
           localStorage.setItem("isNewUser", "true");
           navigate("/choose-role");
         } else {
