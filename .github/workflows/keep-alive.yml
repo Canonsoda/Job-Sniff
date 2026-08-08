@@ -1,24 +1,29 @@
 name: Keep services awake
 
-# Render's free instances sleep after ~15 minutes of inactivity, and waking one
-# adds roughly a minute to whatever the user was trying to do. Pinging /health
-# keeps them warm and doubles as uptime monitoring: if a service does not answer,
-# this job fails and GitHub emails you.
+# Render's free instances sleep after ~15 minutes idle. Waking one shows
+# Render's own "SERVICE WAKING UP" splash page - that screen belongs to Render's
+# proxy, not to this app, so the only way to avoid it is for the service not to
+# be asleep when someone arrives.
 #
-# NOTE ON COST: a warm service consumes Render free instance hours, which are
-# limited per month and shared across your free services. Pinging three services
-# around the clock will burn through that allowance well before month end, so
-# this runs during a daytime window instead. Widen or narrow `schedule` below to
-# match your allowance - the times are UTC (IST is UTC+5:30).
+# Free instance hours are capped per month and shared across free services, so
+# keeping all three warm around the clock would exhaust the allowance and get
+# everything suspended. The allowance is spent where it shows:
 #
-#   '*/10 4-12 * * *'  -> every 10 min, 09:30-18:29 IST  (~9h/day, current)
-#   '*/10 3-17 * * *'  -> every 10 min, 08:30-23:29 IST  (~15h/day)
-#   '*/10 * * * *'     -> every 10 min, around the clock (~24h/day)
+#   frontend    pinged every 10 min, 24/7  - it is the page users land on, so
+#                                            this is what removes the splash
+#   backend     not pinged                 - wakes on the first API call
+#   ai-service  not pinged                 - wakes on the first upload
+#
+# The cost is that the first dashboard load and first upload after an idle
+# period are slower. No splash screen either way.
+#
+# Running this workflow by hand pings all three, so it doubles as an on-demand
+# health check of the whole stack.
 
 on:
   schedule:
-    - cron: '*/10 4-12 * * *'
-  workflow_dispatch: # lets you run it by hand from the Actions tab
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
 
 jobs:
   ping:
@@ -29,12 +34,17 @@ jobs:
         service:
           - name: frontend
             url: https://job-sniff.onrender.com/health
+            keep_warm: true
           - name: backend
             url: https://job-sniff-backend.onrender.com/health
+            keep_warm: false
           - name: ai-service
             url: https://job-sniff-ai-service.onrender.com/health
+            keep_warm: false
     steps:
       - name: Ping ${{ matrix.service.name }}
+        # Scheduled runs only keep the frontend warm; a manual run checks all three
+        if: matrix.service.keep_warm || github.event_name == 'workflow_dispatch'
         run: |
           # A sleeping instance can take ~60s to answer, so allow a long timeout
           # and retries before calling it down.
