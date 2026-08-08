@@ -57,10 +57,9 @@ export const registerUser = async (req, res) => {
     res.status(500).json({ message: 'Error registering user', error: error.message });
   }
 };
-export const getUser = async(req,res) =>{
-    const users = await User.find();
-    res.json(users);
-}
+// `getUser` used to live here and returned every user document, password
+// hashes included, from an unauthenticated route. Removed rather than gated,
+// since nothing consumed it.
 export const loginUser = async(req,res) =>{
     try{
         const {emailId, password} = req.body;
@@ -109,27 +108,38 @@ export const loginUser = async(req,res) =>{
     }
 }
 
-export const updateHRSettings = async (req, res) => {
+/**
+ * Update the signed-in user's own account.
+ *
+ * Previously HR-only, which meant applicants got a 403 from a Settings page
+ * that still showed them email and password fields. Any authenticated user can
+ * now update their own credentials; recruiter details remain HR-only because
+ * only HR accounts have them.
+ */
+export const updateUserSettings = async (req, res) => {
   try {
-    const userId = req.user.id;
     const { emailId, password, recruiterDetails } = req.body;
 
-    const user = await User.findById(userId);
-
-    if (!user || user.role !== "hr") {
-      return res.status(403).json({ message: "Access denied" });
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
-    if (emailId) {
+    if (emailId && emailId !== user.emailId) {
+      // emailId is a unique index, so check first and return a useful message
+      // instead of letting the save throw a duplicate-key error as a 500
+      const taken = await User.findOne({ emailId, _id: { $ne: user._id } }).lean();
+      if (taken) {
+        return res.status(409).json({ message: "That email is already registered" });
+      }
       user.emailId = emailId;
     }
 
     if (password) {
-      const salt = await bcrypt.genSalt(10);
-      user.password = await bcrypt.hash(password, salt);
+      user.password = await bcrypt.hash(password, 10);
     }
 
-    if (recruiterDetails) {
+    if (recruiterDetails && user.role === "hr") {
       user.recruiterDetails = {
         ...user.recruiterDetails,
         ...recruiterDetails,
@@ -143,10 +153,12 @@ export const updateHRSettings = async (req, res) => {
       user: {
         name: user.name,
         emailId: user.emailId,
+        role: user.role,
         recruiterDetails: user.recruiterDetails,
       },
     });
   } catch (err) {
+    console.error("Settings update failed:", err);
     res.status(500).json({ message: "Update failed", error: err.message });
   }
 };
