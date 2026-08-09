@@ -407,13 +407,12 @@ export const getDashboardStats = async (req, res) => {
 // Function to find and remove duplicate resumes
 export const cleanupDuplicates = async (req, res) => {
   try {
-    let query = {};
-    
-    // HR users can cleanup all duplicates, applicants only their own
-    if (req.user.role === 'applicant') {
-      query.user = req.user.id;
-    }
-    
+    // Destructive operations are always scoped to the caller's own resumes.
+    // HR previously fell through to an unscoped {} query, so one recruiter's
+    // "Clean Duplicates" collapsed rows uploaded by every other recruiter.
+    // Read access is deliberately broader than write access here.
+    const query = { user: req.user.id };
+
     // Get all resumes for the user
     const allResumes = await Resume.find(query);
     
@@ -449,11 +448,14 @@ export const cleanupDuplicates = async (req, res) => {
     for (const duplicate of duplicates) {
       // Collect storage keys before the records are gone, otherwise the files
       // are stranded with nothing left pointing at them.
-      const doomed = await Resume.find({ _id: { $in: duplicate.delete } }).select('storedFileName');
+      // Re-assert ownership on the delete itself rather than trusting that the
+      // ids were gathered from an already-scoped query
+      const scoped = { _id: { $in: duplicate.delete }, user: req.user.id };
+      const doomed = await Resume.find(scoped).select('storedFileName');
       const keys = doomed.map((r) => r.storedFileName).filter(Boolean);
 
-      await Resume.deleteMany({ _id: { $in: duplicate.delete } });
-      deletedCount += duplicate.delete.length;
+      const removed = await Resume.deleteMany(scoped);
+      deletedCount += removed.deletedCount;
 
       // Keep the search index in step with MongoDB
       try {
@@ -489,13 +491,12 @@ export const cleanupDuplicates = async (req, res) => {
 // Function to clear all resumes for a user
 export const clearAllResumes = async (req, res) => {
   try {
-    let query = {};
-    
-    // HR users can clear all resumes, applicants only their own
-    if (req.user.role === 'applicant') {
-      query.user = req.user.id;
-    }
-    
+    // Always scoped to the caller. This route used to run deleteMany({}) plus an
+    // Elasticsearch match_all delete for any HR user, so a single recruiter
+    // pressing "Clear All" wiped every resume in the database - including other
+    // recruiters' uploads and their stored PDFs - with no way back.
+    const query = { user: req.user.id };
+
     // Capture storage keys before deleting, so the files can be reclaimed too
     const doomed = await Resume.find(query).select('storedFileName');
     const keys = doomed.map((r) => r.storedFileName).filter(Boolean);
@@ -507,9 +508,7 @@ export const clearAllResumes = async (req, res) => {
     try {
       await elasticClient.deleteByQuery({
         index: RESUME_INDEX,
-        query: req.user.role === 'applicant'
-          ? { term: { userId: req.user.id } }
-          : { match_all: {} },
+        query: { term: { userId: req.user.id } },
         refresh: true,
       });
     } catch (esError) {
