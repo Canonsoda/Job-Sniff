@@ -148,8 +148,12 @@ def process_resume(pdf_path):
     doc_text = extract_text_from_pdf(pdf_path)
     parsed_json = call_model(doc_text)
 
-    # Save a copy for debugging
-    with open("parsed_resume.json", "w") as f:
-        json.dump(parsed_json, f, indent=2)
+    # This used to write every result to a fixed "parsed_resume.json" in the
+    # working directory - a leftover from notebook debugging. Two concurrent
+    # requests overwrote each other's output, and on a read-only filesystem it
+    # raised and failed an otherwise successful parse. Log instead, and only
+    # when explicitly asked for.
+    if os.environ.get("DEBUG_DUMP_PARSED") == "1":
+        logger.info("Parsed resume payload: %s", json.dumps(parsed_json))
 
     return parsed_json

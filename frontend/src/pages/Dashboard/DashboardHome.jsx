@@ -100,7 +100,7 @@ const [suggestions, setSuggestions] = useState([]);
     const confirmed = await confirmAction({
       title: "Remove duplicate resumes?",
       message:
-        "Resumes sharing an email address are collapsed to the most recent one. The older copies and their PDF files are deleted permanently.",
+        "Among the resumes you uploaded, those sharing an email address are collapsed to the most recent one. The older copies and their PDF files are deleted permanently.",
       confirmLabel: "Remove duplicates",
     });
     if (!confirmed) return;
@@ -119,13 +119,14 @@ const [suggestions, setSuggestions] = useState([]);
   };
 
   const handleClearAll = async () => {
-    // stats is the display array, so read the count off the matching card
-    const total = stats.find((s) => s.title === "Total Resumes")?.value ?? 0;
+    // Deliberately no count here. The stat cards show every resume an HR user
+    // can see, but the API only deletes the ones they uploaded, so quoting the
+    // card would promise a number the request will not deliver. The response
+    // reports the real figure.
     const confirmed = await confirmAction({
-      title: "Delete all resumes?",
-      message: `This permanently deletes ${total} resume${
-        total === 1 ? "" : "s"
-      } and their PDF files. This action cannot be undone.`,
+      title: "Delete all your resumes?",
+      message:
+        "This permanently deletes every resume you uploaded, along with their PDF files. Resumes uploaded by other accounts are not affected. This action cannot be undone.",
       confirmLabel: "Delete all",
     });
 
@@ -263,10 +264,16 @@ const [suggestions, setSuggestions] = useState([]);
           transition={{ delay: 0.8 }}
           className="bg-white/5 p-6 rounded-2xl border border-white/10 shadow-xl backdrop-blur-md"
         >
-          <div className="flex items-center gap-3 mb-4">
+          {/* Labelled for what it is. These are the most frequent skills across
+              the parsed resumes, counted in getDashboardStats - not a model
+              output. The AI in this app is the parser, not this panel. */}
+          <div className="flex items-center gap-3 mb-1">
             <Lightbulb className="text-yellow-400" size={20} />
-            <h3 className="text-white font-semibold text-lg">AI-powered Suggestions</h3>
+            <h3 className="text-white font-semibold text-lg">Most common skills</h3>
           </div>
+          <p className="text-sm text-gray-400 mb-4">
+            Across every resume you can see, ranked by how often each skill appears.
+          </p>
           {suggestions.length > 0 ? (
           <div className="flex flex-wrap gap-3">
             {suggestions.map((tag) => (
